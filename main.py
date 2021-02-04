@@ -71,6 +71,7 @@ async def on_event(partition_context, event):
         if type_request == '0':
             print("Request validating user at device: {}".format(device_ID))
             user_ID = Identifying_User()
+            print('\t{}'.format(user_ID))
             res_msg = {'answer': user_ID}
 
         Response_Devices(device_ID, res_msg)

@@ -16,22 +16,23 @@ PATH_USER_ID = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/i
 # FACE RECOGNITION MODEL
 PREDICTOR_5_POINT_MODEL = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/shape_predictor_5_face_landmarks.dat'
 RESNET_MODEL = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/dlib_face_recognition_resnet_model_v1.dat'
+CNN_FACE_DETECTOR = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/mmod_human_face_detector.dat'
 
 # Data
-FACE_TEST_PATH = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Face_Data/test"
-FACE_TRAIN_PATH = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Face_Data/train"
-DATA_PATH = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Face_Data/"
+ORIGINAL_DATA = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Manipulate_Data/Original_Face"
+PRCESSED_DATA = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Manipulate_Data/Prcessed_Face"
+UNKNOWN_DATA = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Manipulate_Data/unknown_people"
 
 # Parameters for image processing, and KNN model
 IMAGE_SIZE = 150
 BASE_BRIGHTNESS = 180
-THRESHOLD_FACE_REC = 0.5
+THRESHOLD_FACE_REC = 0.45
 NUM_JITTERS = 1
-NUM_NEIGHBROS = 3
+NUM_NEIGHBROS = 10
 KNN_ALGORITHM = 'ball_tree'
 KNN_WEIGHTS = 'distance'
 
-THRESHOLD_PATIENT_REC = 5
+THRESHOLD_PATIENT_REC = 10
 
 CREATE_USER_REPONSE_METHOD = "Validate_User"
 

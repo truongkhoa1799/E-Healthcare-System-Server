@@ -1,0 +1,143 @@
+import time
+import pickle
+import numpy as np
+import cv2
+import sys
+sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
+
+# import face_recognition
+import dlib
+from parameters import *
+
+class Face_Recognition:
+    def __init__(self):
+        self.__pose_predictor_5_point = dlib.shape_predictor(PREDICTOR_5_POINT_MODEL)
+        self.__face_encoder = dlib.face_recognition_model_v1(RESNET_MODEL)
+        self.__face_detector_cnn = dlib.cnn_face_detection_model_v1(CNN_FACE_DETECTOR)
+        self.__face_detector = dlib.get_frontal_face_detector()
+        
+        test_img = None
+        with open ('/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/test_encoding_img', mode='rb') as f1:
+            test_img = pickle.load(f1)
+
+        test_encoded = self.__face_encodings(test_img, [(1, 149, 1, 149)])
+        # (top, right, bottom, left)
+        # sub-image = image[top:bottom, left:right]
+        ret = self.Get_Face_Locations(test_img, model = 'hog')[0]
+        print(ret)
+        # cv2.imshow('test', test_img[ret[0]:ret[2], ret[3]:ret[1]])
+        # cv2.waitKey(2000)
+        # time.sleep(1)
+        print("\tDone load dlib model")
+    
+    def __AdjustBright(self, img):
+        hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) #convert it to hsv
+        v = hsv_img[:, :, 2]
+        mean_v = np.mean(v)
+        diff = BASE_BRIGHTNESS - mean_v
+                    
+        if diff < 0:
+            v = np.where(v < abs(diff), v, v + diff)
+        else:
+            v = np.where( v + diff > 255, v, v + diff)
+
+        hsv_img[:, :, 2] = v
+        ret_img = cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)
+        # return BRG image
+        return ret_img
+        
+    def __Preprocessing_Img(self, img):
+        resized_img = cv2.resize(img, (IMAGE_SIZE,IMAGE_SIZE))
+        resized_adjusted_bright_img = self.__AdjustBright(resized_img)
+        RGB_resized_adjusted_bright_img = cv2.cvtColor(resized_adjusted_bright_img, cv2.COLOR_BGR2RGB)
+        return RGB_resized_adjusted_bright_img
+    
+    ###############################################################################################
+    # face_encodings                                                                              #
+    # Input:                                                                                      #
+    #   list_ndarray    face_image :   image to encode                                            #
+    #   list_str        known_face_locations       :   bounding box for face                      #
+    # Output:                                                                                     #
+    #   None            128-vector                        :   encoding vector                     #
+    ###############################################################################################
+    def __face_encodings(self, face_image, known_face_locations):
+        raw_landmarks = self.__raw_face_landmarks(face_image, known_face_locations)
+        return [np.array(self.__face_encoder.compute_face_descriptor(face_image, raw_landmark_set, 1)) for raw_landmark_set in raw_landmarks]
+
+    ###############################################################################################
+    # _css_to_rect                                                                                #
+    # Input:                                                                                      #
+    #   list_ndarray    css(left, top, right, bottm)            :   bounding box                  #
+    # Output:                                                                                     #
+    #   None            dlib.rectangle(bottom, left, top, right):   encoding vector               #
+    ###############################################################################################
+    def __css_to_rect(self, css):
+        return dlib.rectangle(css[3], css[0], css[1], css[2])
+
+    def __rect_to_css(self, rect):
+        """
+        Convert a dlib 'rect' object to a plain tuple in (top, right, bottom, left) order
+
+        :param rect: a dlib 'rect' object
+        :return: a plain tuple representation of the rect in (top, right, bottom, left) order
+        """
+        return rect.top(), rect.right(), rect.bottom(), rect.left()
+
+    def __trim_css_to_bounds(self, css, image_shape):
+        """
+        Make sure a tuple in (top, right, bottom, left) order is within the bounds of the image.
+
+        :param css:  plain tuple representation of the rect in (top, right, bottom, left) order
+        :param image_shape: numpy shape of the image array
+        :return: a trimmed plain tuple representation of the rect in (top, right, bottom, left) order
+        """
+        return max(css[0], 0), min(css[1], image_shape[1]), min(css[2], image_shape[0]), max(css[3], 0)
+
+    def __raw_face_locations(self, img, number_of_times_to_upsample, model):
+        """
+        Returns an array of bounding boxes of human faces in a image
+
+        :param img: An image (as a numpy array)
+        :param number_of_times_to_upsample: How many times to upsample the image looking for faces. Higher numbers find smaller faces.
+        :param model: Which face detection model to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate
+                    deep-learning model which is GPU/CUDA accelerated (if available). The default is "hog".
+        :return: A list of dlib 'rect' objects of found face locations
+        """
+        if model == "cnn":
+            return self.__face_detector_cnn(img, number_of_times_to_upsample)
+        else:
+            return self.__face_detector(img, number_of_times_to_upsample)
+
+
+    def __raw_face_landmarks(self, face_image, face_locations):
+        if face_locations is None:
+            face_locations = self.__raw_face_locations(face_image)
+        else:
+            face_locations = [self.__css_to_rect(face_location) for face_location in face_locations]
+
+        return [self.__pose_predictor_5_point(face_image, face_location) for face_location in face_locations]
+
+    def Encoding_Face(self, img):
+        # Pre-processing
+        RGB_resized_adjusted_bright_img = self.__Preprocessing_Img(img)
+
+        embedded_face = self.__face_encodings(RGB_resized_adjusted_bright_img, [(0, IMAGE_SIZE, IMAGE_SIZE,0)])[0]
+        # embedded_face = np.array(embedded_face).reshape(1,-1)
+        return embedded_face
+
+    def Get_Face_Locations(self, img, model):
+        """
+        Returns an array of bounding boxes of human faces in a image
+
+        :param img: An image (as a numpy array)
+        :param number_of_times_to_upsample: How many times to upsample the image looking for faces. Higher numbers find smaller faces.
+        :param model: Which face detection model to use. "hog" is less accurate but faster on CPUs. "cnn" is a more accurate
+                    deep-learning model which is GPU/CUDA accelerated (if available). The default is "hog".
+        :return: A list of tuples of found face locations in css (top, right, bottom, left) order
+        """
+        if model == "cnn":
+            return [self.__trim_css_to_bounds(self.__rect_to_css(face.rect), img.shape) for face in self.__raw_face_locations(img, 1, model)]
+        else:
+            return [self.__trim_css_to_bounds(self.__rect_to_css(face), img.shape) for face in self.__raw_face_locations(img, 1, model)]
+
+# test = Face_Recognition()
