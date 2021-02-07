@@ -9,7 +9,7 @@ sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
 import dlib
 from parameters import *
 
-class Face_Recognition:
+class FaceRecognition:
     def __init__(self):
         self.__pose_predictor_5_point = dlib.shape_predictor(PREDICTOR_5_POINT_MODEL)
         self.__face_encoder = dlib.face_recognition_model_v1(RESNET_MODEL)
@@ -23,8 +23,8 @@ class Face_Recognition:
         test_encoded = self.__face_encodings(test_img, [(1, 149, 1, 149)])
         # (top, right, bottom, left)
         # sub-image = image[top:bottom, left:right]
-        ret = self.Get_Face_Locations(test_img, model = 'hog')[0]
-        print(ret)
+        # ret = self.__Get_Face_Locations(test_img, model = 'hog')[0]
+        # print(ret)
         # cv2.imshow('test', test_img[ret[0]:ret[2], ret[3]:ret[1]])
         # cv2.waitKey(2000)
         # time.sleep(1)
@@ -122,10 +122,9 @@ class Face_Recognition:
         RGB_resized_adjusted_bright_img = self.__Preprocessing_Img(img)
 
         embedded_face = self.__face_encodings(RGB_resized_adjusted_bright_img, [(0, IMAGE_SIZE, IMAGE_SIZE,0)])[0]
-        # embedded_face = np.array(embedded_face).reshape(1,-1)
         return embedded_face
 
-    def Get_Face_Locations(self, img, model):
+    def __Get_Face_Locations(self, img, model):
         """
         Returns an array of bounding boxes of human faces in a image
 
@@ -140,4 +139,33 @@ class Face_Recognition:
         else:
             return [self.__trim_css_to_bounds(self.__rect_to_css(face), img.shape) for face in self.__raw_face_locations(img, 1, model)]
 
-# test = Face_Recognition()
+    def Get_Face(self, img):
+        try:
+            fra = 300 / max(img.shape[0], img.shape[1]) 
+            resized_img = cv2.resize(img, (int(img.shape[1] * fra), int(img.shape[0] * fra)))
+            GRAY_resized_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
+
+            ret = self.__Get_Face_Locations(GRAY_resized_img, model = 'hog')
+            if len(ret) == 0:
+                print("\tCannot find location of face in image")
+                return -1, None
+            elif len(ret) != 1:
+                print("\tHas many faces in image")
+                return -2, None
+
+            top = int(ret[0][0] / fra)
+            bottom = int(ret[0][2] / fra)
+            left = int(ret[0][3] / fra)
+            right = int(ret[0][1] / fra)
+
+            face = img[top:bottom, left:right]
+            return 0, face
+        except Exception as e:
+            print("Has error in Get_Face of face_recognition, {}".format(e))
+            return -3, None
+
+# test = FaceRecognition()
+# img = cv2.imread(ORIGINAL_DATA + '/1/IMG_3415.jpg')
+# ret, face = test.Get_Face(img)
+# cv2.imshow('test', face)
+# cv2.waitKey(2000)

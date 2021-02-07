@@ -1,5 +1,7 @@
+import sys
+sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
 from parameters import *
-from Connect_DB import *
+from common_functions.Connect_DB import *
 
 from azure.iot.hub.models import Twin
 from msrest.exceptions import HttpOperationError
@@ -18,18 +20,24 @@ def Create_New_Device(hospital_ID, building_code, device_code):
     # PREPROCESSING HOSPITAL OR BUILDING
     if isinstance(hospital_ID, int) != True or isinstance(building_code, str) != True or isinstance(device_code, str) != True \
         or len(building_code) != 2 or len(device_code) != 10:
-        print("Invalid hospital_ID or building_code or device code")
-        return -1, 0
+        msg = "Invalid hospital_ID or building_code or device code"
+        print(msg)
+        return None, msg
     elif para.db.Check_Valid_Hospital(hospital_ID) != 0  or para.db.Check_Valid_Buidling(hospital_ID, building_code) != 0:
-        print("Not exist hospital_ID or building_code or device code")
-        return -1, 0
+        msg = "Not exist hospital_ID or building_code or device code"
+        print(msg)
+        return None, msg
     elif para.db.Check_Valid_Device(device_code) !=0:
-        print("Exist device_code in database")
-        return -1, 0
+        msg = "Exist device_code in database"
+        print(msg)
+        return None, msg
 
     try:
         # Get available device_ID
-        device_ID = para.db.Get_Available_Device_ID()
+        device_ID, msg = para.db.Get_Available_Device_ID()
+        if device_ID is None:
+            return None, msg
+
         try:
             # CreateDevice - let IoT Hub assign keys
             primary_key = ""
@@ -40,15 +48,15 @@ def Create_New_Device(hospital_ID, building_code, device_code):
             if ex.response.status_code == 409:
                 # 409 indicates a conflict. This happens because the device already exists.
                 new_device = para.iothub_registry_manager.get_device(device_ID)
-                print("The device ID is already exist")
-                return -1, 0
+                msg = "The device ID is already exist"
+                print(msg)
+                return None, msg
             else:
                 raise
         
         register_device_flg = True
         primary_key = new_device.authentication.symmetric_key.primary_key
         # iothub_connection = RESPONSE_IOTHUB_CONNECTION.format(primary_key)
-
         # Update twin
         new_tags = {
                 'location' : {
@@ -60,10 +68,10 @@ def Create_New_Device(hospital_ID, building_code, device_code):
         twin_patch = Twin(tags=new_tags)
         twin = para.iothub_registry_manager.update_twin(device_ID, twin_patch, twin.etag)
         
-        ret = para.db.Insert_New_Device(device_ID, device_code, hospital_ID, building_code)
-        if ret != 0:
-            print("Fail to insert new device")
+        ret, msg = para.db.Insert_New_Device(device_ID, device_code, hospital_ID, building_code)
+        if ret is None:
             para.iothub_registry_manager.delete_device(device_ID, etag=None)
+            return None, msg
 
         print("Create successfully new device with ID: {}".format(device_ID))
         print("\tAt hospital: {}, building: {}".format(hospital_ID, building_code))

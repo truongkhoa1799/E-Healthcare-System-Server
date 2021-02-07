@@ -11,33 +11,13 @@ from azure.iot.hub.models import CloudToDeviceMethod
 from azure.eventhub.aio import EventHubConsumerClient
 from azure.iot.hub import IoTHubRegistryManager
 from azure.eventhub.extensions.checkpointstoreblobaio import BlobCheckpointStore
+from azure.storage.blob import ContainerClient
 
 from parameters import *
 from common_functions.Connect_DB import DB
-from common_functions.Identifying_User import IdentifyUser
-
-######################################################################################
-# Identifying user                                                                   #
-# return:                                                                            #
-#           -1: Not exist otherwise user_id                                          #
-######################################################################################
-def Identifying_User():
-    try:
-        para.list_encoded_img = []
-        para.list_user_id = []
-        post_list_encoded_img = para.request_data.split(' ')
-        for i in post_list_encoded_img:
-            if i != '':
-                post_encoded_img = i.split('/')
-                encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
-                encoded_img = np.array(encoded_img).reshape(1,-1)
-                para.list_encoded_img.append(encoded_img)
-        
-        para.identifying_user.Get_User_ID()
-        return para.return_user_id
-    except Exception as ex:
-        print ( "\tUnexpected error {0} while identifying user".format(ex))
-        return -1
+from common_functions.identifying_user import IdentifyUser
+from common_functions.face_recognition import FaceRecognition
+from common_functions.create_new_patient import *
 
 ######################################################################################
 # Response_Devices                                                                   #
@@ -70,9 +50,10 @@ async def on_event(partition_context, event):
 
         if type_request == '0':
             print("Request validating user at device: {}".format(device_ID))
-            user_ID = Identifying_User()
-            print('\t{}'.format(user_ID))
-            res_msg = {'answer': user_ID}
+            res_msg = para.identifying_user.Identifying_User()
+        elif type_request == '2':
+            print("Request create new user")
+            res_msg = Create_New_Patient(string_properties)
 
         Response_Devices(device_ID, res_msg)
     except Exception as ex:
@@ -97,9 +78,11 @@ async def Receive_Message_From_Devices():
 def Init_Server():
     # Init parameters
     para.identifying_user = IdentifyUser()
+    para.face_recognition = FaceRecognition()
     para.db = DB()
     para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
-    para.checkpoint_store = BlobCheckpointStore.from_connection_string(STORAGE_CONNECTION, BLOB_NAME)
+    para.checkpoint_store = BlobCheckpointStore.from_connection_string(STORAGE_CONNECTION, BLOB_RECEIVE_EVENT)
+    para.image_user_container = ContainerClient.from_connection_string(STORAGE_CONNECTION, container_name=BLOB_RECEIVE_IMG)
 
 if __name__ == '__main__':
     # Remove_Device(1)

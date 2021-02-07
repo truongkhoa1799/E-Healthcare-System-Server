@@ -1,8 +1,11 @@
+# AZURE SERVICES
 EVENT_HUB_CONNECTION = "Endpoint=sb://receivemsgsfromdevices.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=lM4liPS83Rni9DE72LJg2swfELncFmBKOIYTKm81eQY="
 EVENT_HUB_NAME = "receivemsg"
 
 STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;AccountName=hospitalstoragethesis;AccountKey=Sr8cft9eLH9tp//4a1zlz7KXugQgyEw89zAXPFD4N8tHknhPlPmZjAV3j2N+b3XTBNoIpdEehtUPELhLzBFFbA==;EndpointSuffix=core.windows.net"
-BLOB_NAME = "thesis"
+BLOB_RECEIVE_EVENT = "thesis"
+BLOB_RECEIVE_IMG = "imgnewusers"
+IMAGE_NEW_PATIENT = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/file_img_new_user"
 
 IOTHUB_CONNECTION = "HostName=E-HealthCare.azure-devices.net;SharedAccessKeyName=ServerRight;SharedAccessKey=coR5OV6uuuBPCxSriI7DibJsw+XiCb6255cONqZ6JWg="
 
@@ -32,7 +35,7 @@ NUM_NEIGHBROS = 10
 KNN_ALGORITHM = 'ball_tree'
 KNN_WEIGHTS = 'distance'
 
-THRESHOLD_PATIENT_REC = 10
+THRESHOLD_PATIENT_REC = 0.7
 
 CREATE_USER_REPONSE_METHOD = "Validate_User"
 
@@ -44,6 +47,7 @@ class Parameters:
         
         # Identifying user
         self.identifying_user = None
+        self.face_recognition = None
         self.list_encoded_img = []
         self.list_user_id = []
         self.return_user_id = None
@@ -52,9 +56,12 @@ class Parameters:
         self.iothub_registry_manager = None
         # Create an Azure blob checkpoint store to store the checkpoints.
         self.checkpoint_store = None
+        self.image_user_container = None
+
+        self.image_user_container = None
 
         self.request_data = None
-        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination'}
+        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient'}
 
 
 para = Parameters()
