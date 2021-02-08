@@ -33,13 +33,12 @@ class DB:
             self.cursor.execute(sql_st)
             row = self.cursor.fetchone()
             if row.max_device == None:
-                return 1, ""
+                return 1
             else:
-                return int(row[-1]) + 1, ""
+                return int(row[-1]) + 1
         except Exception as ex:
-            msg = "Unexpected error {0} while get available device_ID".format(ex)
-            print ("\t{}".format(msg))
-            return None, msg
+            print("\tUnexpected error {0} while get available device_ID".format(ex))
+            return None
 
 # MODULE FOR CREATE_NEW_DEVICE
     # return: 0: exist, -1 not exist hospital_id
@@ -109,9 +108,8 @@ class DB:
             ret = row.ret
             self.cursor.commit()
         except Exception as ex:
-            msg = "Unexpected error {0} while create new device".format(ex)
-            print ( "\t{}".format(msg))
-            return None, msg
+            print ( "\tHas error when insert device information: {}".format(msg))
+            return None
 
         return ret, ""
 

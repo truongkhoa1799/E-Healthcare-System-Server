@@ -83,6 +83,11 @@ def receive_img():
     cv2.imshow('test', image)
     cv2.waitKey(2000)
 
+def create_new_device(hospital_ID, building_code, device_code):
+    server.Insert_New_Device(hospital_ID, building_code, device_code)
+    while (server.has_response == False):
+        continue
+
 if __name__ == '__main__':
     server.has_response = False
     # server.Close()
@@ -110,5 +115,9 @@ if __name__ == '__main__':
         'e_meail' : 'khuong123@gmail.com'}
     # test_create_new_patient(2, khuong)
     # test_validate(1)
-    test_validate(2)
+    # test_validate(2)
     # receive_img()
+
+    create_new_device(1, 'A1', 'XB00000002')
+
+

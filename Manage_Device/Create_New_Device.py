@@ -5,8 +5,8 @@ from common_functions.Connect_DB import *
 
 from azure.iot.hub.models import Twin
 from msrest.exceptions import HttpOperationError
-from azure.iot.hub import IoTHubRegistryManager
-from azure.eventhub.extensions.checkpointstoreblobaio import BlobCheckpointStore
+# from azure.iot.hub import IoTHubRegistryManager
+
 ######################################################################################
 # Create new divice                                                                  #
 # return:                                                                            #
@@ -18,25 +18,25 @@ def Create_New_Device(hospital_ID, building_code, device_code):
     register_device_flg = False
 
     # PREPROCESSING HOSPITAL OR BUILDING
-    if isinstance(hospital_ID, int) != True or isinstance(building_code, str) != True or isinstance(device_code, str) != True \
-        or len(building_code) != 2 or len(device_code) != 10:
+    if len(building_code) != 2 or len(device_code) != 10:
         msg = "Invalid hospital_ID or building_code or device code"
-        print(msg)
-        return None, msg
+        print("\t{}".format(msg))
+        return {'return': -1, 'msg': msg}
     elif para.db.Check_Valid_Hospital(hospital_ID) != 0  or para.db.Check_Valid_Buidling(hospital_ID, building_code) != 0:
         msg = "Not exist hospital_ID or building_code or device code"
-        print(msg)
-        return None, msg
+        print("\t{}".format(msg))
+        return {'return': -1, 'msg': msg}
     elif para.db.Check_Valid_Device(device_code) !=0:
         msg = "Exist device_code in database"
-        print(msg)
-        return None, msg
+        print("\t{}".format(msg))
+        return {'return': -1, 'msg': msg}
 
     try:
         # Get available device_ID
-        device_ID, msg = para.db.Get_Available_Device_ID()
+        device_ID = para.db.Get_Available_Device_ID()
         if device_ID is None:
-            return None, msg
+            msg = "Has error when create new device"
+            return {'return': -1, 'msg': msg}
 
         try:
             # CreateDevice - let IoT Hub assign keys
@@ -49,8 +49,8 @@ def Create_New_Device(hospital_ID, building_code, device_code):
                 # 409 indicates a conflict. This happens because the device already exists.
                 new_device = para.iothub_registry_manager.get_device(device_ID)
                 msg = "The device ID is already exist"
-                print(msg)
-                return None, msg
+                print("\t{}".format(msg))
+                return {'return': -1, 'msg': msg}
             else:
                 raise
         
@@ -68,34 +68,36 @@ def Create_New_Device(hospital_ID, building_code, device_code):
         twin_patch = Twin(tags=new_tags)
         twin = para.iothub_registry_manager.update_twin(device_ID, twin_patch, twin.etag)
         
-        ret, msg = para.db.Insert_New_Device(device_ID, device_code, hospital_ID, building_code)
+        ret = para.db.Insert_New_Device(device_ID, device_code, hospital_ID, building_code)
         if ret is None:
             para.iothub_registry_manager.delete_device(device_ID, etag=None)
-            return None, msg
+            msg = "Has error when create new device"
+            return {'return': -1, 'msg': msg}
 
-        print("Create successfully new device with ID: {}".format(device_ID))
+        print("\tCreate successfully new device with ID: {}".format(device_ID))
         print("\tAt hospital: {}, building: {}".format(hospital_ID, building_code))
         
-        return 0, device_ID
+        return {'return': 0, 'msg': device_ID}
 
     except Exception as ex:
         if register_device_flg == True:
             para.iothub_registry_manager.delete_device(device_ID, etag=None)
-        print ( "Unexpected error {0} while create new device".format(ex))
-        return -1, 0
+        msg = "Unexpected error {0} while create new device".format(ex)
+        print("\t{}".format(msg))
+        return {'return': -1, 'msg': device_ID}
 
-def Remove_Device(device_ID):
-    try:
-        para.iothub_registry_manager.delete_device(device_ID, etag=None)
-        ret = para.db.Delete_All_Device()
-    except Exception as ex:
-        print ( "\tUnexpected error {0} while delete device".format(ex))
+# def Remove_Device(device_ID):
+#     try:
+#         para.iothub_registry_manager.delete_device(device_ID, etag=None)
+#         ret = para.db.Delete_All_Device()
+#     except Exception as ex:
+#         print ( "\tUnexpected error {0} while delete device".format(ex))
 
-if __name__ == '__main__':
-    para.db = DB()
-    para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
+# if __name__ == '__main__':
+#     para.db = DB()
+#     para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
 
-    # Remove_Device(1)
-    ret, device_id = Create_New_Device(1, 'A1', 'XB00000001')
-    print(ret)
-    print(device_id)
+#     # Remove_Device(1)
+#     ret, device_id = Create_New_Device(1, 'A1', 'XB00000001')
+#     print(ret)
+#     print(device_id)

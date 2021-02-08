@@ -46,7 +46,7 @@ class Server:
                     payload=method_request.payload
                 )
             )
-            if method_request.name == "Validate_User":
+            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" or method_request.name == "Create_New_Device":
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -90,6 +90,24 @@ class Server:
                                     'user_name' : user_information['user_name'],
                                     'password' : user_information['password'],
                                     'e_meail' : user_information['e_meail']
+                                    }
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+    
+    def Insert_New_Device(self, hospital_ID, building_code, device_code):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                data = EventData("Insert new device")
+                data.properties = {'type_request':"3", 
+                                    'device_ID': str(self.__device_ID),
+                                    'hospital_ID': str(hospital_ID),
+                                    'building_code' : str(building_code),
+                                    'device_code' : str(device_code)
                                     }
                 event_data_batch.add(data)
             except Exception as e:

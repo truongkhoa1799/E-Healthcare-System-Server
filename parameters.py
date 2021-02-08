@@ -61,7 +61,7 @@ class Parameters:
         self.image_user_container = None
 
         self.request_data = None
-        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient'}
+        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient', "3": "Create_New_Device"}
 
 
 para = Parameters()

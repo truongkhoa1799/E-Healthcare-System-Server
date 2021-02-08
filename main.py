@@ -18,13 +18,14 @@ from common_functions.Connect_DB import DB
 from common_functions.identifying_user import IdentifyUser
 from common_functions.face_recognition import FaceRecognition
 from common_functions.create_new_patient import *
+from Manage_Device.create_new_device import *
 
 ######################################################################################
 # Response_Devices                                                                   #
 ######################################################################################
-def Response_Devices(device_ID, res_msg):
+def Response_Devices(device_ID, res_msg, method_name):
     # Call the direct method.
-    deviceMethod = CloudToDeviceMethod(method_name=CREATE_USER_REPONSE_METHOD, payload=res_msg)
+    deviceMethod = CloudToDeviceMethod(method_name=method_name, payload=res_msg)
     response = para.iothub_registry_manager.invoke_device_method(device_ID, deviceMethod)
 
     print ( "\tResponse status          : {0}".format(response.status) )
@@ -36,6 +37,8 @@ def Response_Devices(device_ID, res_msg):
 # Listening message from Event hub                                                   #
 ######################################################################################
 async def on_event(partition_context, event):
+    type_request = None
+    device_ID = None
     try:
         bytes_properties = dict(event.properties)
         string_properties = {}
@@ -49,15 +52,30 @@ async def on_event(partition_context, event):
         para.request_data = event.body_as_str(encoding='UTF-8')
 
         if type_request == '0':
-            print("Request validating user at device: {}".format(device_ID))
+            print("Request validating user from device: {}".format(device_ID))
             res_msg = para.identifying_user.Identifying_User()
         elif type_request == '2':
             print("Request create new user")
             res_msg = Create_New_Patient(string_properties)
+        elif type_request == '3':
+            print("Request create new device")
+            hospital_ID = int(string_properties['hospital_ID'])
+            building_code = str(string_properties['building_code'])
+            device_code = str(string_properties['device_code'])
+            res_msg = Create_New_Device(hospital_ID, building_code, device_code)
 
-        Response_Devices(device_ID, res_msg)
+        Response_Devices(device_ID, res_msg, para.request_msg[type_request])
     except Exception as ex:
         print ( "\tUnexpected error {0} while receiving message".format(ex))
+        if type_request == "0":
+            msg = "Has error when validate user"
+            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
+        elif type_request == "2":
+            msg = "Has error when create new user"
+            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
+        elif type_request == "3":
+            msg = "Has error when create new device"
+            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
 
     await partition_context.update_checkpoint(event)
 
@@ -88,7 +106,6 @@ if __name__ == '__main__':
     # Remove_Device(1)
     try:
         Init_Server()
-
         # Run the main method.
         loop = asyncio.get_event_loop()
         loop.run_until_complete(Receive_Message_From_Devices())
