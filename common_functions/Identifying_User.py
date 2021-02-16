@@ -31,6 +31,10 @@ class IdentifyUser:
         if ret == -1:
             print("There is KNN model to load")
             exit(-1)
+        
+        print("\tLoaded users data for encoding")
+        print("\tNumber of users: {}".format(len(self.__list_patient_ID)//5))
+                
 
         # print(self.__list_embedded_face)
         # print(self.__list_patient_ID)
@@ -87,7 +91,7 @@ class IdentifyUser:
         freq = {}
         max_people = 0
         return_user_id = None
-        # print(para.list_user_id)
+
         for user_id in para.list_user_id: 
             if (user_id['user_id'] in freq): 
                 freq[user_id['user_id'] ] += 1
@@ -98,7 +102,7 @@ class IdentifyUser:
                 max_people = freq[user_id['user_id'] ]
                 return_user_id = user_id['user_id'] 
                 
-        if max_people >= THRESHOLD_PATIENT_REC*len(para.list_encoded_img):
+        if len(para.list_user_id) > 20 and max_people >= THRESHOLD_PATIENT_REC*len(para.list_user_id):
             return return_user_id
         else:
             return -1
@@ -110,8 +114,13 @@ class IdentifyUser:
     # Output:                                                                                     #
     #   Str             UserID                      :                                             #
     ###############################################################################################
-    def __Get_User_ID(self):
-        for embedded_img in para.list_encoded_img:
+    def __Get_User_ID(self, list_encoded_img):
+        list_user_id = []
+        freq = {}
+        max_people = 0
+        return_user_id = None
+        
+        for embedded_img in list_encoded_img:
             closet_distances = self.__knn_clf.kneighbors(embedded_img, n_neighbors = NUM_NEIGHBROS)
             face_id = self.__knn_clf.predict(embedded_img)
             # print(closet_distances)
@@ -120,34 +129,55 @@ class IdentifyUser:
             meet_condition_threshold = [closet_distances[0][0][i] <= THRESHOLD_FACE_REC for i in range(len(closet_distances[0][0]))]
             for i in range(len(meet_condition_threshold)):
                 if self.__list_patient_ID[closet_distances[1][0][i]] == face_id[-1] and meet_condition_threshold[i]:
-                    para.list_user_id.append({'user_id':face_id[-1], 'distance': str(closet_distances[0][0][i])})
+                    list_user_id.append({'user_id':face_id[-1], 'distance': str(closet_distances[0][0][i])})
                     break
+
+        for user_id in list_user_id: 
+            if (user_id['user_id'] in freq): 
+                freq[user_id['user_id']] += 1
+            else: 
+                freq[user_id['user_id']] = 1
+            
+            if freq[user_id['user_id']] > max_people:
+                max_people = freq[user_id['user_id']]
+                return_user_id = user_id['user_id']
         
-        return self.__Get_Most_Face()
+        print("\tNumber of received encoding face: {}".format(len(list_encoded_img)))
+        print("\tNumber of predict face: {}".format(len(list_user_id)))
+        # print(para.list_user_id)
+
+        if len(list_user_id) != 0:
+            list_distance = [np.float64(user_id['distance']) for user_id in list_user_id]
+            print("\tMax distance of predict face: {}".format(np.max(list_distance)))
+            print("\tMin distance of predict face: {}".format(np.min(list_distance)))
+
+        if len(list_user_id) > 15 and max_people >= FRAC_NUMBER_USERS_RECOGNIZED*len(list_user_id):
+            return return_user_id
+        else:
+            return -1
     
     ######################################################################################
     # Identifying user                                                                   #
     # return:                                                                            #
     #           -1: Not exist otherwise user_id                                          #
     ######################################################################################
-    def Identifying_User(self):
+    def Identifying_User(self, data):
         res_msg = None
         try:
             if len(self.__list_patient_ID) == 5:
                 user_ID = self.__list_patient_ID[0]
             else:
-                para.list_encoded_img = []
-                para.list_user_id = []
-                post_list_encoded_img = para.request_data.split(' ')
+                list_encoded_img = []
+                post_list_encoded_img = data.split(' ')
                 for i in post_list_encoded_img:
                     if i != '':
                         post_encoded_img = i.split('/')
                         encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
                         encoded_img = np.array(encoded_img).reshape(1,-1)
-                        para.list_encoded_img.append(encoded_img)
+                        list_encoded_img.append(encoded_img)
                 
-                user_ID = self.__Get_User_ID()
-
+                user_ID = self.__Get_User_ID(list_encoded_img)
+            # print(user_ID)
             if user_ID != -1:
                 ret, name, birthday, phone, address = para.db.Get_Patient_Information(user_ID)
                 if ret == -1:
@@ -159,7 +189,7 @@ class IdentifyUser:
 
             return res_msg
         except Exception as ex:
-            print ( "\tUnexpected error {0} while identifying user".format(ex))
+            print ( "\tHas error at module Identifying_User in identifying_user.py: {}".format(ex))
             return {'return': -1}
     
     def __TrainKNN(self):

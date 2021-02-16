@@ -59,11 +59,11 @@ class Server:
             print(method_request.payload['return'])
             self.has_response = True
     
-    def Validate_User(self):
+    def Validate_User(self, list_encoded_img):
         try:
             event_data_batch = self.__producer.create_batch()
             try:
-                data = EventData(para.list_encoded_img)
+                data = EventData(list_encoded_img)
                 # data = EventData("Hello")
                 data.properties = {'type_request':"0", 'device_ID': str(self.__device_ID)}
                 event_data_batch.add(data)

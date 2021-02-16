@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import pickle
 import asyncio
 import numpy as np
@@ -9,8 +10,10 @@ from azure.iot.hub.models import Twin
 from msrest.exceptions import HttpOperationError
 from azure.iot.hub.models import CloudToDeviceMethod
 from azure.eventhub.aio import EventHubConsumerClient
+# from azure.eventhub import EventHubConsumerClient
 from azure.iot.hub import IoTHubRegistryManager
 from azure.eventhub.extensions.checkpointstoreblobaio import BlobCheckpointStore
+# from azure.eventhub.extensions.checkpointstoreblob import BlobCheckpointStore
 from azure.storage.blob import ContainerClient
 
 from parameters import *
@@ -25,6 +28,9 @@ from Manage_Device.create_new_device import *
 ######################################################################################
 def Response_Devices(device_ID, res_msg, method_name):
     # Call the direct method.
+    # print(device_ID)
+    # print(res_msg)
+    # print(method_name)
     deviceMethod = CloudToDeviceMethod(method_name=method_name, payload=res_msg)
     response = para.iothub_registry_manager.invoke_device_method(device_ID, deviceMethod)
 
@@ -37,10 +43,15 @@ def Response_Devices(device_ID, res_msg, method_name):
 # Listening message from Event hub                                                   #
 ######################################################################################
 async def on_event(partition_context, event):
+# def on_event(partition_context, event):
     type_request = None
     device_ID = None
     try:
+        await partition_context.update_checkpoint(event)
+        # partition_context.update_checkpoint(event)
+
         bytes_properties = dict(event.properties)
+        data = event.body_as_str(encoding='UTF-8')
         string_properties = {}
 
         # Change keys and values in properties from bytes to string
@@ -49,37 +60,39 @@ async def on_event(partition_context, event):
         
         device_ID = int(string_properties['device_ID'])
         type_request = string_properties['type_request']
-        para.request_data = event.body_as_str(encoding='UTF-8')
+        
+        current_time = time.strftime("%H:%M:%S",time.localtime())
+        print("[{time}]".format(time=current_time))
 
         if type_request == '0':
-            print("Request validating user from device: {}".format(device_ID))
-            res_msg = para.identifying_user.Identifying_User()
+            print("\tRequest validating user from device: {device_ID}".format(device_ID=device_ID))
+            res_msg = para.identifying_user.Identifying_User(data)
         elif type_request == '2':
-            print("Request create new user")
-            res_msg = Create_New_Patient(string_properties)
+            print("\tRequest create new user")
+            res_msg = Create_New_Patient(string_properties, data)
         elif type_request == '3':
-            print("Request create new device")
+            print("\tRequest create new device")
             hospital_ID = int(string_properties['hospital_ID'])
             building_code = str(string_properties['building_code'])
             device_code = str(string_properties['device_code'])
             res_msg = Create_New_Device(hospital_ID, building_code, device_code)
 
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
+        print()
     except Exception as ex:
         print ( "\tUnexpected error {0} while receiving message".format(ex))
         if type_request == "0":
             msg = "Has error when validate user"
-            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
         elif type_request == "2":
             msg = "Has error when create new user"
-            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
         elif type_request == "3":
             msg = "Has error when create new device"
-            Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
 
-    await partition_context.update_checkpoint(event)
+        Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
+        print()
 
 async def Receive_Message_From_Devices():
+# def Receive_Message_From_Devices():
     print("Start receiving message from devices")
 
     # Create a consumer client for the event hub.
@@ -92,6 +105,13 @@ async def Receive_Message_From_Devices():
     async with client:
         # Call the receive method. Read from the beginning of the partition (starting_position: "-1")
         await client.receive(on_event=on_event,  starting_position="-1")
+
+    # try:
+    #     with client:
+    #         # Call the receive method. Read from the beginning of the partition (starting_position: "-1")
+    #         client.receive(on_event=on_event,  starting_position="-1")
+    # except KeyboardInterrupt:
+    #     print('Stopped receiving.')
 
 def Init_Server():
     # Init parameters
@@ -109,5 +129,6 @@ if __name__ == '__main__':
         # Run the main method.
         loop = asyncio.get_event_loop()
         loop.run_until_complete(Receive_Message_From_Devices())
+        # Receive_Message_From_Devices()
     except KeyboardInterrupt:
         print("press control-c again to quit")

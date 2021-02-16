@@ -35,7 +35,7 @@ NUM_NEIGHBROS = 10
 KNN_ALGORITHM = 'ball_tree'
 KNN_WEIGHTS = 'distance'
 
-THRESHOLD_PATIENT_REC = 0.7
+FRAC_NUMBER_USERS_RECOGNIZED = 0.7
 
 CREATE_USER_REPONSE_METHOD = "Validate_User"
 
@@ -48,8 +48,6 @@ class Parameters:
         # Identifying user
         self.identifying_user = None
         self.face_recognition = None
-        self.list_encoded_img = []
-        self.list_user_id = []
         self.return_user_id = None
 
         # Connect IoT hub and Event Hub
@@ -60,7 +58,6 @@ class Parameters:
 
         self.image_user_container = None
 
-        self.request_data = None
         self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient', "3": "Create_New_Device"}
 
 

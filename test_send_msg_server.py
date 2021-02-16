@@ -26,6 +26,7 @@ def Compose_String(encoded_img):
 def test_validate(user_id):
     para.identifying_user = IdentifyUser()
     para.face_recognition = FaceRecognition()
+    list_encoded_img = ""
 
     for img in __image_files_in_folder(ORIGINAL_DATA + '/test/' + str(user_id)):
     # for img in __image_files_in_folder(UNKNOWN_DATA):
@@ -33,11 +34,14 @@ def test_validate(user_id):
         ret, face = para.face_recognition.Get_Face(loaded_img)
         if ret != 0:
             continue
+        
+        # cv2.imshow('test', face)
+        # cv2.waitKey(2000)
         embedded_img = para.face_recognition.Encoding_Face(face)
         encoded_img_string = Compose_String(embedded_img)
-        para.list_encoded_img += encoded_img_string + ' '
+        list_encoded_img += encoded_img_string + ' '
 
-    server.Validate_User()
+    server.Validate_User(list_encoded_img)
     while (server.has_response == False):
         continue
 
@@ -93,7 +97,7 @@ if __name__ == '__main__':
     # server.Close()
     khoa = {
         'first_name' : 'Khoa',
-        'last_name' : 'Truong Le Vinh Khoa',
+        'last_name' : 'Truong Le Vinh',
         'date_of_birth' : '1999-07-01',
         'gender' : 'm',
         'address' : '954/33 Quang Trung, p08, Go Vap, TPHCM',
@@ -113,11 +117,69 @@ if __name__ == '__main__':
         'user_name' : 'khuong',
         'password' : 'khuong123',
         'e_meail' : 'khuong123@gmail.com'}
-    # test_create_new_patient(2, khuong)
-    # test_validate(1)
-    # test_validate(2)
+    cuccungchan = {
+        'first_name' : 'Ngoc',
+        'last_name' : 'Vu Hong Khanh',
+        'date_of_birth' : '2000-08-15',
+        'gender' : 'f',
+        'address' : '133/38/18 Cong Lo, P.15, Tan Binh, TP.HCM',
+        'phone_number' : '0971155123',
+        'ssn' : '025874423',
+        'user_name' : 'ngoc',
+        'password' : 'ngoc123',
+        'e_meail' : 'ngoc123@gmail.com'}
+    hao = {
+        'first_name' : 'Hao',
+        'last_name' : 'Le',
+        'date_of_birth' : '2000-02-05',
+        'gender' : 'm',
+        'address' : '123 Quang Trung, p12, Go Vap, TP.HCM',
+        'phone_number' : '0971155141',
+        'ssn' : '025813412',
+        'user_name' : 'Hao',
+        'password' : 'hao123',
+        'e_meail' : 'hao123@gmail.com'}
+    linh = {
+        'first_name' : 'linh',
+        'last_name' : 'Le',
+        'date_of_birth' : '1999-01-07',
+        'gender' : 'f',
+        'address' : '123 Quang Trung, p12, Go Vap, TP.HCM',
+        'phone_number' : '0971155141',
+        'ssn' : '025813411',
+        'user_name' : 'linh',
+        'password' : 'linh123',
+        'e_meail' : 'linh123@gmail.com'}
+    
+    bo = {
+        'first_name' : 'Khoa',
+        'last_name' : 'Truong Le Anh',
+        'date_of_birth' : '2013-11-02',
+        'gender' : 'm',
+        'address' : '123 Quang Trung, p12, Go Vap, TP.HCM',
+        'phone_number' : '0971155311',
+        'ssn' : '025813111',
+        'user_name' : 'bo',
+        'password' : 'bo123',
+        'e_meail' : 'bo123@gmail.com'}
+
+    jenny = {
+        'first_name' : 'Jenny',
+        'last_name' : 'Huynh',
+        'date_of_birth' : '2004-11-02',
+        'gender' : 'f',
+        'address' : '123 Quang Trung, p12, Go Vap, TP.HCM',
+        'phone_number' : '0971215311',
+        'ssn' : '025813110',
+        'user_name' : 'jenny',
+        'password' : 'jenny123',
+        'e_meail' : 'jenny123@gmail.com'}
+
+    # test_create_new_patient(7, jenny)
+    test_validate(1)
+    # test_validate(7)
     # receive_img()
 
-    create_new_device(1, 'A1', 'XB00000002')
+    # create_new_device(1, 'A1', 'XB00000002')
 
 

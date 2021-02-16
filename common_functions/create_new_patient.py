@@ -3,12 +3,20 @@ import os, glob
 import cv2
 import numpy as np
 
-def Create_New_Patient(user_information):
+def Create_New_Patient(user_information, request_data):
     # os.mkdir(os.path.join(IMAGE_NEW_PATIENT, ssn))
     flg_insert_patient_info = False
     flg_insert_patient_img = False
     list_embedded_face = []
     try:
+        list_imgs = []
+        list_image_name = request_data.split(' ')
+        for name in list_image_name:
+            if name != "":
+                image = para.image_user_container.download_blob(blob=name).readall()
+                list_imgs.append(image)
+                para.image_user_container.delete_blob(blob=name)
+
         first_name = user_information['first_name']
         last_name = user_information['last_name']
         date_of_birth = user_information['date_of_birth']
@@ -18,17 +26,9 @@ def Create_New_Patient(user_information):
         ssn = user_information['ssn']
         user_name = user_information['user_name']
         password = user_information['password']
-        e_meail = user_information['e_meail']
-        
-        list_imgs = []
-        list_image_name = para.request_data.split(' ')
-        for name in list_image_name:
-            if name != "":
-                image = para.image_user_container.download_blob(blob=name).readall()
-                list_imgs.append(image)
-                para.image_user_container.delete_blob(blob=name)
+        e_mail = user_information['e_meail']
 
-        patient_ID = para.db.Insert_New_Patient(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_meail)
+        patient_ID = para.db.Insert_New_Patient(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail)
         if patient_ID is None:
             msg = "Fail to insert new patient into database"
             print("\t{}".format(msg))
