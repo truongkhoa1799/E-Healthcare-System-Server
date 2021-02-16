@@ -175,8 +175,14 @@ if __name__ == '__main__':
         'password' : 'jenny123',
         'e_meail' : 'jenny123@gmail.com'}
 
+    # test_create_new_patient(2, khuong)
+    # test_create_new_patient(3, cuccungchan)
+    # test_create_new_patient(4, hao)
+    # test_create_new_patient(5, linh)
+    # test_create_new_patient(6, bo)
     # test_create_new_patient(7, jenny)
-    test_validate(1)
+    test_create_new_patient(1, khoa)
+    # test_validate(1)
     # test_validate(7)
     # receive_img()
 

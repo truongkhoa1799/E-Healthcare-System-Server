@@ -121,7 +121,10 @@ class IdentifyUser:
         return_user_id = None
         
         for embedded_img in list_encoded_img:
-            closet_distances = self.__knn_clf.kneighbors(embedded_img, n_neighbors = NUM_NEIGHBROS)
+            if len(self.__list_patient_ID) == 5:
+                closet_distances = self.__knn_clf.kneighbors(embedded_img, n_neighbors = 5)
+            else:
+                closet_distances = self.__knn_clf.kneighbors(embedded_img, n_neighbors = NUM_NEIGHBROS)
             face_id = self.__knn_clf.predict(embedded_img)
             # print(closet_distances)
             # print(face_id)
@@ -151,7 +154,7 @@ class IdentifyUser:
             print("\tMax distance of predict face: {}".format(np.max(list_distance)))
             print("\tMin distance of predict face: {}".format(np.min(list_distance)))
 
-        if len(list_user_id) > 15 and max_people >= FRAC_NUMBER_USERS_RECOGNIZED*len(list_user_id):
+        if len(list_user_id) > NUMBER_USERS_RECOGNIZED and max_people >= FRAC_NUMBER_USERS_RECOGNIZED*len(list_user_id):
             return return_user_id
         else:
             return -1
@@ -164,20 +167,17 @@ class IdentifyUser:
     def Identifying_User(self, data):
         res_msg = None
         try:
-            if len(self.__list_patient_ID) == 5:
-                user_ID = self.__list_patient_ID[0]
-            else:
-                list_encoded_img = []
-                post_list_encoded_img = data.split(' ')
-                for i in post_list_encoded_img:
-                    if i != '':
-                        post_encoded_img = i.split('/')
-                        encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
-                        encoded_img = np.array(encoded_img).reshape(1,-1)
-                        list_encoded_img.append(encoded_img)
-                
-                user_ID = self.__Get_User_ID(list_encoded_img)
-            # print(user_ID)
+            list_encoded_img = []
+            post_list_encoded_img = data.split(' ')
+            for i in post_list_encoded_img:
+                if i != '':
+                    post_encoded_img = i.split('/')
+                    encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
+                    encoded_img = np.array(encoded_img).reshape(1,-1)
+                    list_encoded_img.append(encoded_img)
+            
+            user_ID = self.__Get_User_ID(list_encoded_img)
+
             if user_ID != -1:
                 ret, name, birthday, phone, address = para.db.Get_Patient_Information(user_ID)
                 if ret == -1:
@@ -195,7 +195,10 @@ class IdentifyUser:
     def __TrainKNN(self):
         print("\tStarting train KNN Model")
         # Create and train the KNN classifier
-        knn_clf = neighbors.KNeighborsClassifier(n_neighbors=NUM_NEIGHBROS, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
+        if len(self.__list_patient_ID) == 5:
+            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
+        else:
+            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=NUM_NEIGHBROS, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
 
         # __known_face_encodings is list of ndarray
         # __known_face_IDs is list of str
