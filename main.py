@@ -20,11 +20,11 @@ from parameters import *
 from common_functions.Connect_DB import DB
 from common_functions.identifying_user import IdentifyUser
 from common_functions.face_recognition import FaceRecognition
+# from common_functions.manage_device import *
 
-from Services.create_new_patient import *
-from Services.create_new_device import *
-from Services.get_examination_room import *
-# from Manage_Device.Manage_Device import *
+from services.create_new_patient import *
+from services.create_new_device import *
+from services.get_examination_room import *
 
 ######################################################################################
 # Response_Devices                                                                   #

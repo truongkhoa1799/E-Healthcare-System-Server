@@ -1,4 +1,4 @@
-from Manage_Device.Manage_Device import *
+from common_functions.manage_device import *
 from parameters import *
 
 def Get_Examination_Room(device_ID):

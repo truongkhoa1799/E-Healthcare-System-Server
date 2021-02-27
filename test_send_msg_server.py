@@ -204,7 +204,7 @@ if __name__ == '__main__':
 
     # test_create_new_patient(2, khuong)
     # test_create_new_patient(3, cuccungchan)
-    test_create_new_patient(4, hao)
+    # test_create_new_patient(4, hao)
     # test_create_new_patient(5, linh)
     # test_create_new_patient(6, bo)
     # test_create_new_patient(7, jenny)
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     # test_validate(7)
     # test_validate(3)
     # receive_img()
-    # Get_Exam_Room()
+    Get_Exam_Room()
     # create_new_device(1, 'A1', 'XB00000002')
     # create_new_device(1, 'B1', 'XB00000003')
 
