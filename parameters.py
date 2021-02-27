@@ -29,7 +29,7 @@ UNKNOWN_DATA = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/Manipulate_Dat
 # Parameters for image processing, and KNN model
 IMAGE_SIZE = 150
 BASE_BRIGHTNESS = 180
-THRESHOLD_FACE_REC = 0.45
+THRESHOLD_FACE_REC = 0.42
 NUM_JITTERS = 1
 NUM_NEIGHBROS = 10
 KNN_ALGORITHM = 'ball_tree'
@@ -59,7 +59,7 @@ class Parameters:
 
         self.image_user_container = None
 
-        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient', "3": "Create_New_Device"}
+        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient', "3": "Create_New_Device", "4": "Get_Examination_Room"}
 
 
 para = Parameters()

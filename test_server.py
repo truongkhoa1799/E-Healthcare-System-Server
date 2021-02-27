@@ -30,12 +30,10 @@ class Server:
         device_method_thread.start()
 
     def __LoadConnection(self):
-        with open ('/Users/khoa1799/GitHub/E-Healthcare-System/communicate_server/connection', 'rb') as fp_1:
-            ret = pickle.load(fp_1)
-            self.__device_ID = ret['device_ID']
-            self.__device_iothub_connection = ret['device_iothub_connection']
-            self.__eventhub_connection = ret['eventhub_connection']
-            self.__eventhub_name = ret['eventhub_name']
+        self.__device_ID = 'test_device'
+        self.__device_iothub_connection = 'HostName=E-HealthCare.azure-devices.net;DeviceId=test_device;SharedAccessKey=daocRxJxutI2Ofd4NlmqXTchUZG7EpLn49yBr9oaipY='
+        self.__eventhub_connection = r"Endpoint=sb://receivemsgsfromdevices.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=lM4liPS83Rni9DE72LJg2swfELncFmBKOIYTKm81eQY="
+        self.__eventhub_name = 'receivemsg'
 
     def __Listen_Reponse_Server(self, connection):
         while True:
@@ -46,7 +44,8 @@ class Server:
                     payload=method_request.payload
                 )
             )
-            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" or method_request.name == "Create_New_Device":
+            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" or method_request.name == "Create_New_Device" \
+                or method_request.name == 'Get_Examination_Room':
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -56,7 +55,9 @@ class Server:
             method_response = MethodResponse(method_request.request_id, response_status, payload=response_payload)
             connection.send_method_response(method_response)
 
-            print(method_request.payload['return'])
+            # exam_room = method_request.payload['msg']
+            # for room in exam_room:
+            #     print(room)
             self.has_response = True
     
     def Validate_User(self, list_encoded_img):
@@ -65,7 +66,7 @@ class Server:
             try:
                 data = EventData(list_encoded_img)
                 # data = EventData("Hello")
-                data.properties = {'type_request':"0", 'device_ID': str(self.__device_ID)}
+                data.properties = {'type_request':"0", 'device_ID': str(self.__device_ID), "request_id": "hsds"}
                 event_data_batch.add(data)
             except Exception as e:
                 print(e)
@@ -89,7 +90,9 @@ class Server:
                                     'ssn' : user_information['ssn'],
                                     'user_name' : user_information['user_name'],
                                     'password' : user_information['password'],
-                                    'e_meail' : user_information['e_meail']
+                                    'e_meail' : user_information['e_meail'],
+                                    'flag_valid': user_information['flag_valid'],
+                                    "request_id": "hsds" 
                                     }
                 event_data_batch.add(data)
             except Exception as e:
@@ -107,7 +110,24 @@ class Server:
                                     'device_ID': str(self.__device_ID),
                                     'hospital_ID': str(hospital_ID),
                                     'building_code' : str(building_code),
-                                    'device_code' : str(device_code)
+                                    'device_code' : str(device_code),
+                                    "request_id": "hsds"
+                                    }
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+    
+    def Get_Exam_Room(self):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                data = EventData("Get examination room")
+                data.properties = {'type_request':"4", 
+                                    'device_ID': str(self.__device_ID),
+                                    "request_id": "hsds"
                                     }
                 event_data_batch.add(data)
             except Exception as e:

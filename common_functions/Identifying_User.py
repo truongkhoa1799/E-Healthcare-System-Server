@@ -147,12 +147,14 @@ class IdentifyUser:
         
         print("\tNumber of received encoding face: {}".format(len(list_encoded_img)))
         print("\tNumber of predict face: {}".format(len(list_user_id)))
+        print("\tMax number users predicted: {}".format(max_people))
         # print(para.list_user_id)
 
         if len(list_user_id) != 0:
             list_distance = [np.float64(user_id['distance']) for user_id in list_user_id]
             print("\tMax distance of predict face: {}".format(np.max(list_distance)))
             print("\tMin distance of predict face: {}".format(np.min(list_distance)))
+            print("\tMean distance of predict face: {}".format(np.mean(list_distance)))
 
         if len(list_user_id) > NUMBER_USERS_RECOGNIZED and max_people >= FRAC_NUMBER_USERS_RECOGNIZED*len(list_user_id):
             return return_user_id
@@ -183,7 +185,7 @@ class IdentifyUser:
                 if ret == -1:
                     res_msg = {'return': -1}
                 else:
-                    res_msg = {'return': 0, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                    res_msg = {'return': 0, 'user_ID': user_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
             else:
                 res_msg = {'return': -1}
 

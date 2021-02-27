@@ -92,6 +92,11 @@ def create_new_device(hospital_ID, building_code, device_code):
     while (server.has_response == False):
         continue
 
+def Get_Exam_Room():
+    server.Get_Exam_Room()
+    while (server.has_response == False):
+        continue
+
 if __name__ == '__main__':
     server.has_response = False
     # server.Close()
@@ -105,7 +110,8 @@ if __name__ == '__main__':
         'ssn' : '025874412',
         'user_name' : 'khoa',
         'password' : 'khoa123',
-        'e_meail' : 'khoa123@gmail.com'}
+        'e_meail' : 'khoa123@gmail.com',
+        'flag_valid' : '1'}
     khuong = {
         'first_name' : 'khuong',
         'last_name' : 'Le Nguyen An',
@@ -116,7 +122,8 @@ if __name__ == '__main__':
         'ssn' : '025874441',
         'user_name' : 'khuong',
         'password' : 'khuong123',
-        'e_meail' : 'khuong123@gmail.com'}
+        'e_meail' : 'khuong123@gmail.com',
+        'flag_valid' : '1'}
     cuccungchan = {
         'first_name' : 'Ngoc',
         'last_name' : 'Vu Hong Khanh',
@@ -127,7 +134,8 @@ if __name__ == '__main__':
         'ssn' : '025874423',
         'user_name' : 'ngoc',
         'password' : 'ngoc123',
-        'e_meail' : 'ngoc123@gmail.com'}
+        'e_meail' : 'ngoc123@gmail.com',
+        'flag_valid' : '1'}
     hao = {
         'first_name' : 'Hao',
         'last_name' : 'Le',
@@ -138,7 +146,8 @@ if __name__ == '__main__':
         'ssn' : '025813412',
         'user_name' : 'Hao',
         'password' : 'hao123',
-        'e_meail' : 'hao123@gmail.com'}
+        'e_meail' : 'hao123@gmail.com',
+        'flag_valid' : '1'}
     linh = {
         'first_name' : 'linh',
         'last_name' : 'Le',
@@ -149,7 +158,8 @@ if __name__ == '__main__':
         'ssn' : '025813411',
         'user_name' : 'linh',
         'password' : 'linh123',
-        'e_meail' : 'linh123@gmail.com'}
+        'e_meail' : 'linh123@gmail.com',
+        'flag_valid' : '1'}
     
     bo = {
         'first_name' : 'Khoa',
@@ -161,7 +171,8 @@ if __name__ == '__main__':
         'ssn' : '025813111',
         'user_name' : 'bo',
         'password' : 'bo123',
-        'e_meail' : 'bo123@gmail.com'}
+        'e_meail' : 'bo123@gmail.com',
+        'flag_valid' : '1'}
 
     jenny = {
         'first_name' : 'Jenny',
@@ -173,19 +184,39 @@ if __name__ == '__main__':
         'ssn' : '025813110',
         'user_name' : 'jenny',
         'password' : 'jenny123',
-        'e_meail' : 'jenny123@gmail.com'}
+        'e_meail' : 'jenny123@gmail.com',
+        'flag_valid' : '1'}
+
+    kiet = {
+        'first_name' : 'Kiet',
+        'last_name' : 'Truong Gia',
+        'date_of_birth' : '2004-11-02',
+        'gender' : 'f',
+        'address' : '123 Quang Trung, p12, Go Vap, TP.HCM',
+        'phone_number' : '0971215421',
+        'ssn' : '025233110',
+        'user_name' : 'kiet',
+        'password' : 'kiet123',
+        'e_meail' : 'kiet123@gmail.com',
+        'flag_valid' : '1'}
+
+
 
     # test_create_new_patient(2, khuong)
     # test_create_new_patient(3, cuccungchan)
-    # test_create_new_patient(4, hao)
+    test_create_new_patient(4, hao)
     # test_create_new_patient(5, linh)
     # test_create_new_patient(6, bo)
     # test_create_new_patient(7, jenny)
-    test_create_new_patient(1, khoa)
+    # test_create_new_patient(1, khoa)
+    # test_create_new_patient(8, kiet)
     # test_validate(1)
     # test_validate(7)
+    # test_validate(3)
     # receive_img()
-
+    # Get_Exam_Room()
     # create_new_device(1, 'A1', 'XB00000002')
+    # create_new_device(1, 'B1', 'XB00000003')
+
 
 

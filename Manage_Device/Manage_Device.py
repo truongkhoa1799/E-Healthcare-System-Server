@@ -1,18 +1,22 @@
+from parameters import *
+from azure.iot.hub.models import Twin
+from msrest.exceptions import HttpOperationError
+
 ######################################################################################
 # Change the location of device with new hospital, new building                      #
 ######################################################################################
-def ChangeLocation(device_ID, new_hospital, new_building):
+def ChangeLocation(device_ID, new_hospital, building_code):
     try:
         new_tags = {
                 'location' : {
-                    'hospital' : '%d'%new_hospital,
-                    'building' : '%d'%new_building
+                    'hospital_ID' : '%d'%new_hospital,
+                    'building_code' : '%s'%building_code
                 }
             }
         twin = para.iothub_registry_manager.get_twin(device_ID)
         twin_patch = Twin(tags=new_tags)
         twin = para.iothub_registry_manager.update_twin(device_ID, twin_patch, twin.etag)
-        print("Update location of device: {} at new hospital: {}, building: {} sucessfully".format(device_ID, new_hospital, new_building))
+        print("Update location of device: {} at new hospital: {}, building: {} sucessfully".format(device_ID, new_hospital, building_code))
         
         return 0
     except Exception as ex:
@@ -32,6 +36,14 @@ def Get_Connection_Device(device_ID):
         iothub_connection = RESPONSE_IOTHUB_CONNECTION.format(primary_key)
 
         return 0, iothub_connection
+    except Exception as ex:
+        print ( "Unexpected error {0} while retreiving device connection".format(ex) )
+        return -1, 0
+
+def Get_Twin_Information(device_ID):
+    try:
+        twin = para.iothub_registry_manager.get_twin(device_ID)
+        return(twin.tags['location'])
     except Exception as ex:
         print ( "Unexpected error {0} while retreiving device connection".format(ex) )
         return -1, 0

@@ -27,8 +27,9 @@ def Create_New_Patient(user_information, request_data):
         user_name = user_information['user_name']
         password = user_information['password']
         e_mail = user_information['e_meail']
+        flag_valid = user_information['flag_valid']
 
-        patient_ID = para.db.Insert_New_Patient(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail)
+        patient_ID = para.db.Insert_New_Patient(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid)
         if patient_ID is None:
             msg = "Fail to insert new patient into database"
             print("\t{}".format(msg))

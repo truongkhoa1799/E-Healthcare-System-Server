@@ -142,7 +142,7 @@ class DB:
             print("Has error when getting patient information: {}".format(e))
             return -1, 0, 0, 0, 0
     
-    def Insert_New_Patient(self, first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail):
+    def Insert_New_Patient(self, first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid):
         patient_ID = None
         sql_st = """\
         DECLARE @ret_patient_ID INT;
@@ -158,9 +158,10 @@ class DB:
             @User_Name = '{}', \
             @Password = '{}', \
             @E_Mail = '{}', \
+            @flag_valid = '{}', \
             @ret_patient_ID = @ret_patient_ID OUTPUT;
         SELECT @ret_patient_ID as ret_patient_ID;
-        """.format(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail)
+        """.format(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid)
         try:
             self.cursor.execute(sql_st)
             row = self.cursor.fetchone()
@@ -218,6 +219,27 @@ class DB:
         except Exception as ex:
             print ( "\tUnexpected error {0} while delete new patient".format(ex))
         return ret
+
+    def Get_Exam_Room(self, hospital_ID):
+        # Get Name, birthday, Phone, Address
+        ret = []
+        sql_st = '''SELECT D.Dep_id, D.Dep_name, ER.Building_Code, ER.Exam_Room_Code
+                    FROM hospital.EXAM_ROOM as ER
+                    JOIN hospital.DEPARTMENT as D
+                    ON D.Dep_id = ER.Dep_id
+                    WHERE ER.Hospital_ID = {}'''.format(hospital_ID)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            while row:
+                ret.append({'dep_ID': row[0], 'dep_name': row[1], 'building_code': row[2], 'room_code': row[3]})
+                row = self.cursor.fetchone()
+            return 0, ret
+
+        except Exception as e:
+            print("Has error when getting patient information: {}".format(e))
+            return -1, None
+
 
 # db = DB()
 # print(db.Get_Available_Device_ID())
