@@ -44,8 +44,10 @@ class Server:
                     payload=method_request.payload
                 )
             )
-            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" or method_request.name == "Create_New_Device" \
-                or method_request.name == 'Get_Examination_Room':
+            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" \
+                or method_request.name == "Create_New_Device" \
+                or method_request.name == 'Get_Examination_Room' \
+                or method_request.name == 'Submit_Examination':
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -55,9 +57,9 @@ class Server:
             method_response = MethodResponse(method_request.request_id, response_status, payload=response_payload)
             connection.send_method_response(method_response)
 
-            # exam_room = method_request.payload['msg']
-            # for room in exam_room:
-            #     print(room)
+            # ret = method_request.payload['stt']
+            # # for room in exam_room:
+            # print(ret)
             self.has_response = True
     
     def Validate_User(self, list_encoded_img):
@@ -129,6 +131,19 @@ class Server:
                                     'device_ID': str(self.__device_ID),
                                     "request_id": "hsds"
                                     }
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+    
+    def Submit_Examination(self, msg):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                data = EventData("Submit Examiantion room")
+                data.properties = msg
                 event_data_batch.add(data)
             except Exception as e:
                 print(e)

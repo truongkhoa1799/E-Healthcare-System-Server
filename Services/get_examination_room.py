@@ -7,7 +7,7 @@ def Get_Examination_Room(device_ID):
         hospital_ID = int(location['hospital_ID'])
         ret, exam_room = para.db.Get_Exam_Room(hospital_ID)
         if ret == 0:
-            return {'return': 0, 'msg': exam_room}
+            return {'return': 0, 'msg': exam_room, 'hospital_ID': hospital_ID}
         else:
             return {'return': -1, 'msg': 'Fail to get examination room'}
     except Exception as error:

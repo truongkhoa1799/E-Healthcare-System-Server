@@ -97,6 +97,30 @@ def Get_Exam_Room():
     while (server.has_response == False):
         continue
 
+
+def Submit_Examiantion():
+    msg = {
+        'request_id': '44b6064c-5fd1-443e-ad8f-ef5ef0ffd795', 
+        'type_request': '5', 
+        'device_ID': 'test_device', 
+
+        'hospital_ID': '1', 
+        'building_code': 'C1', 
+        'room_code': '101', 
+        'patient_ID': '1', 
+        
+        'blood_pressure': '120', 
+        'pulse': '98', 
+        'thermal': '38', 
+        'spo2': '90',
+        'height': '172.4',
+        'weight': '70.4'
+    }
+
+    server.Submit_Examination(msg)
+    while (server.has_response == False):
+        continue
+
 if __name__ == '__main__':
     server.has_response = False
     # server.Close()
@@ -209,12 +233,13 @@ if __name__ == '__main__':
     # test_create_new_patient(6, bo)
     # test_create_new_patient(7, jenny)
     # test_create_new_patient(1, khoa)
-    # test_create_new_patient(8, kiet)
+    test_create_new_patient(8, kiet)
     # test_validate(1)
     # test_validate(7)
     # test_validate(3)
     # receive_img()
-    Get_Exam_Room()
+    # Get_Exam_Room()
+    # Submit_Examiantion()
     # create_new_device(1, 'A1', 'XB00000002')
     # create_new_device(1, 'B1', 'XB00000003')
 

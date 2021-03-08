@@ -25,6 +25,7 @@ from common_functions.face_recognition import FaceRecognition
 from services.create_new_patient import *
 from services.create_new_device import *
 from services.get_examination_room import *
+from services.submit_examination import *
 
 ######################################################################################
 # Response_Devices                                                                   #
@@ -55,6 +56,7 @@ async def on_event(partition_context, event):
         # partition_context.update_checkpoint(event)
 
         bytes_properties = dict(event.properties)
+        # NOTE: EVERY VALUES IN JSON HAVE TO BE TRANSFERED TO STRING
         string_properties = {}
 
         # Change keys and values in properties from bytes to string
@@ -70,22 +72,25 @@ async def on_event(partition_context, event):
 
         if type_request == '0':
             data = event.body_as_str(encoding='UTF-8')
-            print("\tRequest: {} validating user from device: {}".format(request_id, device_ID))
+            print("\tID {}. Request validate usert. From device id: {}".format(request_id, device_ID))
             res_msg = para.identifying_user.Identifying_User(data)
         elif type_request == '2':
-            print("\tRequest: {} create new user from device: {}".format(request_id, device_ID))
+            print("\tID {}. Request create new user. From device id: {}".format(request_id, device_ID))
             # data = event.body_as_json(encoding='UTF-8')
             data = event.body_as_str(encoding='UTF-8')
             res_msg = Create_New_Patient(string_properties, data)
         elif type_request == '3':
-            print("\tRequest create new device")
+            print("\tID {}. Request new device. From device id: {}")
             hospital_ID = int(string_properties['hospital_ID'])
             building_code = str(string_properties['building_code'])
             device_code = str(string_properties['device_code'])
             res_msg = Create_New_Device(hospital_ID, building_code, device_code)
         elif type_request == '4':
-            print("\tRequest id: {}, getting examination room from device id: {}".format(request_id, device_ID))
+            print("\tID {}. Request get examination room. From device id: {}".format(request_id, device_ID))
             res_msg = Get_Examination_Room(device_ID)
+        elif type_request == '5':
+            print("\tID {}. Request submit examination. From device id: {}".format(request_id, device_ID))
+            res_msg = Submit_Examination(string_properties)
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])

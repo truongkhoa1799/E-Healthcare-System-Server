@@ -36,7 +36,7 @@ KNN_ALGORITHM = 'ball_tree'
 KNN_WEIGHTS = 'distance'
 
 FRAC_NUMBER_USERS_RECOGNIZED = 0.7
-NUMBER_USERS_RECOGNIZED = 18
+NUMBER_USERS_RECOGNIZED = 12
 
 CREATE_USER_REPONSE_METHOD = "Validate_User"
 
@@ -59,7 +59,14 @@ class Parameters:
 
         self.image_user_container = None
 
-        self.request_msg = {"0": 'Validate_User', "1": 'Send_Examination', "2": 'Create_Patient', "3": "Create_New_Device", "4": "Get_Examination_Room"}
+        self.request_msg = {
+            "0": 'Validate_User', 
+            "1": 'Send_Examination', 
+            "2": 'Create_Patient', 
+            "3": "Create_New_Device", 
+            "4": "Get_Examination_Room",
+            "5": "Submit_Examination"
+        }
 
 
 para = Parameters()

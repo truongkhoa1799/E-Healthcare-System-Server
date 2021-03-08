@@ -182,6 +182,7 @@ class IdentifyUser:
 
             if user_ID != -1:
                 ret, name, birthday, phone, address = para.db.Get_Patient_Information(user_ID)
+                # print(ret)
                 if ret == -1:
                     res_msg = {'return': -1}
                 else:
