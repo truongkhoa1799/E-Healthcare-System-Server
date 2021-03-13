@@ -47,7 +47,8 @@ class Server:
             if method_request.name == "Validate_User" or method_request.name == "Create_Patient" \
                 or method_request.name == "Create_New_Device" \
                 or method_request.name == 'Get_Examination_Room' \
-                or method_request.name == 'Submit_Examination':
+                or method_request.name == 'Submit_Examination' \
+                or method_request.name == 'Create_Temp_Patient':
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -82,6 +83,33 @@ class Server:
             try:
                 data = EventData(list_imgs)
                 data.properties = {'type_request':"2", 
+                                    'device_ID': str(self.__device_ID),
+                                    'first_name' : user_information['first_name'],
+                                    'last_name' : user_information['last_name'],
+                                    'date_of_birth' : user_information['date_of_birth'],
+                                    'gender' : user_information['gender'],
+                                    'address' : user_information['address'],
+                                    'phone_number' : user_information['phone_number'],
+                                    'ssn' : user_information['ssn'],
+                                    'user_name' : user_information['user_name'],
+                                    'password' : user_information['password'],
+                                    'e_meail' : user_information['e_meail'],
+                                    'flag_valid': user_information['flag_valid'],
+                                    "request_id": "hsds" 
+                                    }
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+        
+    def Insert_Temp_Patient(self, user_information, list_imgs):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                data = EventData(list_imgs)
+                data.properties = {'type_request':"6", 
                                     'device_ID': str(self.__device_ID),
                                     'first_name' : user_information['first_name'],
                                     'last_name' : user_information['last_name'],

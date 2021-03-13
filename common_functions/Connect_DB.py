@@ -217,8 +217,9 @@ class DB:
         except Exception as ex:
             print ( "\tHas error when delete queue examination, at module Delete_Queue_Examination, in file Connect_DB.py".format(ex))
     
+# MODULE FOR CREATE_NEW_USER
     def Insert_New_Patient(self, first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid):
-        patient_ID = None
+        patient_ID = -1
         sql_st = """\
         DECLARE @ret_patient_ID INT;
         DECLARE @Patient_ID INT;

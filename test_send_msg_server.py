@@ -97,6 +97,25 @@ def Get_Exam_Room():
     while (server.has_response == False):
         continue
 
+def test_create_temp_user(user_id, user_information):
+    para.face_recognition = FaceRecognition()
+    list_image_encoeded = ""
+    for img in __image_files_in_folder(ORIGINAL_DATA + '/train/' + str(user_id)):
+        loaded_img = cv2.imread(img)
+        # print("Loaded image {} ".format(img))
+        
+        ret, face = para.face_recognition.Get_Face(loaded_img)
+        if ret == 0:
+            embedded_face = para.face_recognition.Encoding_Face(face)
+            encoded_img_string = Compose_String(embedded_face)
+            list_image_encoeded += encoded_img_string + ' '
+        else:
+            exit(-1)
+
+    server.Insert_Temp_Patient(user_information, list_image_encoeded)
+    while (server.has_response == False):
+        continue
+
 
 def Submit_Examiantion():
     msg = {
@@ -224,6 +243,19 @@ if __name__ == '__main__':
         'e_meail' : 'kiet123@gmail.com',
         'flag_valid' : '1'}
 
+    temp_patient = {
+        'first_name' : 'temp',
+        'last_name' : 'temp',
+        'date_of_birth' : '2004-11-02',
+        'gender' : 'm',
+        'address' : 'temp',
+        'phone_number' : '0971215000',
+        'ssn' : '000000000',
+        'user_name' : 'temp',
+        'password' : 'temp123',
+        'e_meail' : 'temp123@gmail.com',
+        'flag_valid' : '0'}
+
 
 
     # test_create_new_patient(2, khuong)
@@ -233,11 +265,12 @@ if __name__ == '__main__':
     # test_create_new_patient(6, bo)
     # test_create_new_patient(7, jenny)
     # test_create_new_patient(1, khoa)
-    test_create_new_patient(8, kiet)
+    # test_create_new_patient(8, kiet)
     # test_validate(1)
     # test_validate(7)
     # test_validate(3)
     # receive_img()
+    test_create_temp_user(8, temp_patient)
     # Get_Exam_Room()
     # Submit_Examiantion()
     # create_new_device(1, 'A1', 'XB00000002')

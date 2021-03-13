@@ -55,7 +55,7 @@ def Create_New_Patient(user_information, request_data):
                 if ret_insert_patient_img == -1:
                     message = "Has error when insert image of patient"
                     print("\t{}".format(message))
-                    return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info)
+                    return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
             elif ret == -1:
                 message = "Has error when process patient face, cannot find location of face in image"
                 print("\t{}".format(message))

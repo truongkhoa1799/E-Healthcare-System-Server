@@ -23,6 +23,7 @@ from common_functions.face_recognition import FaceRecognition
 # from common_functions.manage_device import *
 
 from services.create_new_patient import *
+from services.create_temp_patient import *
 from services.create_new_device import *
 from services.get_examination_room import *
 from services.submit_examination import *
@@ -91,6 +92,10 @@ async def on_event(partition_context, event):
         elif type_request == '5':
             print("\tID {}. Request submit examination. From device id: {}".format(request_id, device_ID))
             res_msg = Submit_Examination(string_properties)
+        elif type_request == "6":
+            data = event.body_as_str(encoding='UTF-8')
+            res_msg = Create_Temp_Patient(string_properties, data)
+            print("\tID {}. Request create temporary user. From device id: {}".format(request_id, device_ID))
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
@@ -105,6 +110,10 @@ async def on_event(partition_context, event):
             msg = "Has error when create new device"
         elif type_request == "4":
             msg = "Has error when get examination room"
+        elif type_request == "5":
+            msg = "Has error when submit examination room"
+        elif type_request == "6":
+            msg = "Has error when create temporary user"
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
