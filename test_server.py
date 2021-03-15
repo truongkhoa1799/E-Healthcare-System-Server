@@ -178,6 +178,27 @@ class Server:
             self.__producer.send_batch(event_data_batch)
         except Exception as e:
             print(e)
+    
+    def Activate_Temp_Patient(self, user_id):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                msg = {
+                    'type_request':"7", 
+                    'device_ID': str(self.__device_ID),
+                    'user_id': str(user_id),
+                    "request_id": "hsds"
+                }
+                print(msg)
+                data = EventData("Submit Examiantion room")
+                data.properties = msg
+
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
 
     def Close(self):
         self.__producer.close()

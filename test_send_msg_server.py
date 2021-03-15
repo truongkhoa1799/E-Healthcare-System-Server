@@ -110,11 +110,15 @@ def test_create_temp_user(user_id, user_information):
             encoded_img_string = Compose_String(embedded_face)
             list_image_encoeded += encoded_img_string + ' '
         else:
+            print("Has no face")
             exit(-1)
-
+    
     server.Insert_Temp_Patient(user_information, list_image_encoeded)
     while (server.has_response == False):
         continue
+
+def activate_temp_patient(user_id):
+    server.Activate_Temp_Patient(user_id)
 
 
 def Submit_Examiantion():
@@ -267,14 +271,17 @@ if __name__ == '__main__':
     # test_create_new_patient(1, khoa)
     # test_create_new_patient(8, kiet)
     # test_validate(1)
-    # test_validate(7)
+    # test_validate(8)
     # test_validate(3)
     # receive_img()
-    test_create_temp_user(8, temp_patient)
+    test_create_temp_user(9, temp_patient)
+    # activate_temp_patient(9)
+    # test_validate(9)
     # Get_Exam_Room()
     # Submit_Examiantion()
     # create_new_device(1, 'A1', 'XB00000002')
     # create_new_device(1, 'B1', 'XB00000003')
+    # create_new_device(1, 'B1', 'XB00000004')
 
 
 

@@ -68,7 +68,8 @@ class Parameters:
             "3": "Create_New_Device", 
             "4": "Get_Examination_Room",
             "5": "Submit_Examination",
-            "6": "Create_Temp_Patient"
+            "6": "Create_Temp_Patient",
+            "7": "Activate_Temp_Patient"
         }
 
 

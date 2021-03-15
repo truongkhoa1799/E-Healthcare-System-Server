@@ -74,7 +74,7 @@ def Create_New_Patient(user_information, request_data):
         ret_add_new_patient = para.identifying_user.Add_New_Patient(patient_ID, list_embedded_face)
         if ret_add_new_patient == -1:
             msg = "Has error when insert new patient"
-            return {'return': -1, 'msg': message}
+            return {'return': -1, 'msg': msg}
         
         return {'return': 0, 'msg': ""}
     except Exception as e:

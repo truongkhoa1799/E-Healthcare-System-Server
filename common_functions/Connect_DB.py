@@ -267,6 +267,23 @@ class DB:
             print ( "\tUnexpected error {0} while insert image patient".format(ex))
 
         return ret
+
+    def Get_Patient_Img(self, user_id):
+        ret = []
+        sql_st = '''SELECT Img FROM hospital.PATIENT_IMG
+                    WHERE patient_id = {};'''.format(user_id)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            while row:
+                # print(type(row[0]))
+                ret.append(row[0])
+                row = self.cursor.fetchone()
+            return 0, ret
+
+        except Exception as e:
+            print("Has error when getting patient image: {}".format(e))
+            return -1, None
     
     def Delete_Patient(self, patient_ID):
         ret = -1
@@ -334,7 +351,17 @@ class DB:
             return -1, None
 
 
-db = DB()
+# db = DB()
+# ret, list_img = db.Get_Patient_Img(9)
+# for i in list_img:
+#     img = i.split('/')
+#     print(len(img))
+#     print(img[0])
+#     print(img[-2])
+#     print(img[-1])
+
+# print(list_image)
+
 # db.test()
 # print(db.Get_Available_Device_ID())
 # id = db.Check_Valid_Hospital(2)

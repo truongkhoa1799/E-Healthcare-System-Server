@@ -13,7 +13,11 @@ from msrest.exceptions import HttpOperationError
 #           -1: Fail                                                                 #
 #            0: Success                                                              #
 ######################################################################################
-def Create_New_Device(hospital_ID, building_code, device_code):
+def Create_New_Device(string_properties):
+    hospital_ID = int(string_properties['hospital_ID'])
+    building_code = str(string_properties['building_code'])
+    device_code = str(string_properties['device_code'])
+    
     # INIT FLAG CHECK CREATE
     register_device_flg = False
 

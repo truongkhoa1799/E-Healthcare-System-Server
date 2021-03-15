@@ -27,6 +27,7 @@ from services.create_temp_patient import *
 from services.create_new_device import *
 from services.get_examination_room import *
 from services.submit_examination import *
+from services.activate_temp_patient import *
 
 ######################################################################################
 # Response_Devices                                                                   #
@@ -64,38 +65,46 @@ async def on_event(partition_context, event):
         for key in bytes_properties:
             string_properties[key.decode("utf-8")] = bytes_properties[key].decode("utf-8")
         
-        device_ID = string_properties['device_ID']
-        type_request = string_properties['type_request']
-        request_id = string_properties['request_id']
+        # All attributes is String
+        device_ID = str(string_properties['device_ID'])
+        type_request = str(string_properties['type_request'])
+        request_id = str(string_properties['request_id'])
         
         current_time = time.strftime("%H:%M:%S",time.localtime())
         print("[{time}]".format(time=current_time))
 
         if type_request == '0':
             data = event.body_as_str(encoding='UTF-8')
-            print("\tID {}. Request validate usert. From device id: {}".format(request_id, device_ID))
+            print("\tID {}. Request validate patient. From device id: {}".format(request_id, device_ID))
             res_msg = para.identifying_user.Identifying_User(data)
+
         elif type_request == '2':
-            print("\tID {}. Request create new user. From device id: {}".format(request_id, device_ID))
+            print("\tID {}. Request create new patient. From device id: {}".format(request_id, device_ID))
             # data = event.body_as_json(encoding='UTF-8')
             data = event.body_as_str(encoding='UTF-8')
             res_msg = Create_New_Patient(string_properties, data)
+
         elif type_request == '3':
             print("\tID {}. Request new device. From device id: {}")
-            hospital_ID = int(string_properties['hospital_ID'])
-            building_code = str(string_properties['building_code'])
-            device_code = str(string_properties['device_code'])
-            res_msg = Create_New_Device(hospital_ID, building_code, device_code)
+            res_msg = Create_New_Device(string_properties)
+
         elif type_request == '4':
             print("\tID {}. Request get examination room. From device id: {}".format(request_id, device_ID))
             res_msg = Get_Examination_Room(device_ID)
+            
         elif type_request == '5':
             print("\tID {}. Request submit examination. From device id: {}".format(request_id, device_ID))
             res_msg = Submit_Examination(string_properties)
+
         elif type_request == "6":
             data = event.body_as_str(encoding='UTF-8')
             res_msg = Create_Temp_Patient(string_properties, data)
-            print("\tID {}. Request create temporary user. From device id: {}".format(request_id, device_ID))
+            print("\tID {}. Request create temporary patient. From device id: {}".format(request_id, device_ID))
+
+        elif type_request == "7":
+            print("\tID {}. Request activate temporary patient. From device id: {}".format(request_id, device_ID))
+            Activate_Temp_Patient(string_properties)
+            return
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
@@ -105,7 +114,7 @@ async def on_event(partition_context, event):
         if type_request == "0":
             msg = "Has error when validate user"
         elif type_request == "2":
-            msg = "Has error when create new user"
+            msg = "Has error when create new patient"
         elif type_request == "3":
             msg = "Has error when create new device"
         elif type_request == "4":
@@ -113,7 +122,11 @@ async def on_event(partition_context, event):
         elif type_request == "5":
             msg = "Has error when submit examination room"
         elif type_request == "6":
-            msg = "Has error when create temporary user"
+            msg = "Has error when create temporary patient"
+        elif type_request == "7":
+            # Log the error
+            msg = "Has error when create temporary patient"
+            return
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])

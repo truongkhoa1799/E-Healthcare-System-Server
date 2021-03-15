@@ -34,10 +34,11 @@ class IdentifyUser:
         
         print("\tLoaded users data for encoding")
         print("\tNumber of users: {}".format(len(self.__list_patient_ID)//5))
-                
+        
 
         # print(self.__list_embedded_face)
         # print(self.__list_patient_ID)
+        # print(type(self.__list_patient_ID[0]))
 
     ###############################################################################################
     # __LoadData                                                                                  #                    
@@ -222,6 +223,8 @@ class IdentifyUser:
             pickle.dump(self.__knn_clf, f)
 
     def Add_New_Patient(self, patient_ID, list_embedded_face):
+        patient_ID = int(patient_ID)
+
         old_list_patient_ID = self.__list_patient_ID
         old_list_embedded_face = self.__list_embedded_face
         old_knn_clf = self.__knn_clf
