@@ -31,8 +31,8 @@ class Server:
 
     def __LoadConnection(self):
         self.__device_ID = 'test_device'
-        self.__device_iothub_connection = 'HostName=E-HealthCare.azure-devices.net;DeviceId=test_device;SharedAccessKey=daocRxJxutI2Ofd4NlmqXTchUZG7EpLn49yBr9oaipY='
-        self.__eventhub_connection = r"Endpoint=sb://receivemsgsfromdevices.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=lM4liPS83Rni9DE72LJg2swfELncFmBKOIYTKm81eQY="
+        self.__device_iothub_connection = 'HostName=thesisehealthcare.azure-devices.net;DeviceId=test_device;SharedAccessKey=SVIVZG2E4ICRsjYLPFM2VGk06tp4DQaxP4E+e4f9Ju0='
+        self.__eventhub_connection = "Endpoint=sb://thesisehealthcare.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=AUeMD+PSZx675wFA4kPllGfSnMwhATPOGPPDWex5jSU="
         self.__eventhub_name = 'receivemsg'
 
     def __Listen_Reponse_Server(self, connection):

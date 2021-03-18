@@ -1,14 +1,24 @@
 # AZURE SERVICES
-EVENT_HUB_CONNECTION = "Endpoint=sb://receivemsgsfromdevices.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=lM4liPS83Rni9DE72LJg2swfELncFmBKOIYTKm81eQY="
+# EVENT_HUB_CONNECTION = "Endpoint=sb://receivemsgsfromdevices.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=lM4liPS83Rni9DE72LJg2swfELncFmBKOIYTKm81eQY="
+# EVENT_HUB_NAME = "receivemsg"
+
+# STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;AccountName=hospitalstoragethesis;AccountKey=Sr8cft9eLH9tp//4a1zlz7KXugQgyEw89zAXPFD4N8tHknhPlPmZjAV3j2N+b3XTBNoIpdEehtUPELhLzBFFbA==;EndpointSuffix=core.windows.net"
+# BLOB_RECEIVE_EVENT = "thesis"
+# BLOB_RECEIVE_IMG = "imgnewusers"
+# IMAGE_NEW_PATIENT = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/file_img_new_user"
+
+# IOTHUB_CONNECTION = "HostName=E-HealthCare.azure-devices.net;SharedAccessKeyName=ServerRight;SharedAccessKey=coR5OV6uuuBPCxSriI7DibJsw+XiCb6255cONqZ6JWg="
+
+# New aaccont
+EVENT_HUB_CONNECTION = "Endpoint=sb://thesisehealthcare.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=AUeMD+PSZx675wFA4kPllGfSnMwhATPOGPPDWex5jSU="
 EVENT_HUB_NAME = "receivemsg"
 
-STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;AccountName=hospitalstoragethesis;AccountKey=Sr8cft9eLH9tp//4a1zlz7KXugQgyEw89zAXPFD4N8tHknhPlPmZjAV3j2N+b3XTBNoIpdEehtUPELhLzBFFbA==;EndpointSuffix=core.windows.net"
+STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;AccountName=thesisehealthcare;AccountKey=fl1SeJ/ATaRoRFZginBei2zJyxdTmA1y6c4EeSDuFgNGdTUxiStRd2JGQxL0e0lzXHugfBp7xA6YyH4pnqHJuA==;EndpointSuffix=core.windows.net"
 BLOB_RECEIVE_EVENT = "thesis"
 BLOB_RECEIVE_IMG = "imgnewusers"
 IMAGE_NEW_PATIENT = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/file_img_new_user"
 
-IOTHUB_CONNECTION = "HostName=E-HealthCare.azure-devices.net;SharedAccessKeyName=ServerRight;SharedAccessKey=coR5OV6uuuBPCxSriI7DibJsw+XiCb6255cONqZ6JWg="
-
+IOTHUB_CONNECTION = "HostName=thesisehealthcare.azure-devices.net;SharedAccessKeyName=serverRight;SharedAccessKey=ljbaoEH304RNLuxtNC6a/TIbQ7NKbh7OfsQ5RKfbx7M="
 # KNN MODEL
 KNN_MODEL_PATH = "/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/knn_clf_model.clf"
 
