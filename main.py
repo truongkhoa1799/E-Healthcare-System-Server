@@ -1,10 +1,5 @@
-import os
-import sys
 import time
-import pickle
 import asyncio
-import numpy as np
-from time import sleep
 
 from azure.iot.hub.models import Twin
 from msrest.exceptions import HttpOperationError
@@ -94,17 +89,14 @@ async def on_event(partition_context, event):
             
         elif type_request == '5':
             print("\tID {}. Request submit examination. From device id: {}".format(request_id, device_ID))
-            res_msg = Submit_Examination(string_properties)
+            data = event.body_as_str(encoding='UTF-8')
+            # print(len(data))
+            res_msg = Submit_Examination(string_properties, data)
 
         elif type_request == "6":
             data = event.body_as_str(encoding='UTF-8')
             res_msg = Create_Temp_Patient(string_properties, data)
             print("\tID {}. Request create temporary patient. From device id: {}".format(request_id, device_ID))
-
-        elif type_request == "7":
-            print("\tID {}. Request activate temporary patient. From device id: {}".format(request_id, device_ID))
-            Activate_Temp_Patient(string_properties)
-            return
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
@@ -123,10 +115,6 @@ async def on_event(partition_context, event):
             msg = "Has error when submit examination room"
         elif type_request == "6":
             msg = "Has error when create temporary patient"
-        elif type_request == "7":
-            # Log the error
-            msg = "Has error when create temporary patient"
-            return
 
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
@@ -156,12 +144,25 @@ async def Receive_Message_From_Devices():
 
 def Init_Server():
     # Init parameters
+    print("Start Identifying User moule")
     para.identifying_user = IdentifyUser()
+    print()
+
+    print("Start Recognizing User moule")
     para.face_recognition = FaceRecognition()
+    print()
+
+    print("Start Connecting Database moule")
     para.db = DB()
+    print()
+
+    print("Start Connecting Azure services")
     para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
     para.checkpoint_store = BlobCheckpointStore.from_connection_string(STORAGE_CONNECTION, BLOB_RECEIVE_EVENT)
     para.image_user_container = ContainerClient.from_connection_string(STORAGE_CONNECTION, container_name=BLOB_RECEIVE_IMG)
+    print()
+
+    time.sleep(2)
     # location = Get_Twin_Information('test_device')
     # ChangeLocation('test_device', 1, 'B1')
     # print(location)

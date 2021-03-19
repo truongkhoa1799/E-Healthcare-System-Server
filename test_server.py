@@ -103,33 +103,6 @@ class Server:
             self.__producer.send_batch(event_data_batch)
         except Exception as e:
             print(e)
-        
-    def Insert_Temp_Patient(self, user_information, list_imgs):
-        try:
-            event_data_batch = self.__producer.create_batch()
-            try:
-                data = EventData(list_imgs)
-                data.properties = {'type_request':"6", 
-                                    'device_ID': str(self.__device_ID),
-                                    'first_name' : user_information['first_name'],
-                                    'last_name' : user_information['last_name'],
-                                    'date_of_birth' : user_information['date_of_birth'],
-                                    'gender' : user_information['gender'],
-                                    'address' : user_information['address'],
-                                    'phone_number' : user_information['phone_number'],
-                                    'ssn' : user_information['ssn'],
-                                    'user_name' : user_information['user_name'],
-                                    'password' : user_information['password'],
-                                    'e_meail' : user_information['e_meail'],
-                                    'flag_valid': user_information['flag_valid'],
-                                    "request_id": "hsds" 
-                                    }
-                event_data_batch.add(data)
-            except Exception as e:
-                print(e)
-            self.__producer.send_batch(event_data_batch)
-        except Exception as e:
-            print(e)
     
     def Insert_New_Device(self, hospital_ID, building_code, device_code):
         try:
@@ -166,11 +139,17 @@ class Server:
         except Exception as e:
             print(e)
     
-    def Submit_Examination(self, msg):
+    def Submit_Examination(self, msg, list_image_encoeded):
         try:
             event_data_batch = self.__producer.create_batch()
             try:
-                data = EventData("Submit Examiantion room")
+                if list_image_encoeded != "":
+                    print("Create new user")
+                    data = EventData(list_image_encoeded)
+                    msg['patient_ID'] = '-1'
+                else:
+                    data = EventData("Submit Examiantion room")
+                
                 data.properties = msg
                 event_data_batch.add(data)
             except Exception as e:

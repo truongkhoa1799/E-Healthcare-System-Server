@@ -3,14 +3,13 @@ import pyodbc
 class DB:
     def __init__(self):
         server = "hospitaldb.database.windows.net"
-        username = "JETSON_BOARD"
+        username = "PYTHON_SERVER"
         password = "Database_Hospital@123"
         database = "HospitalDB"
 
         # self.conn = pymssql.connect(server, user, password, database)
         self.connect = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
         self.cursor = self.connect.cursor()
-        print(self.connect.getinfo(pyodbc.SQL_DATA_SOURCE_NAME))
         # print(self.cursor.getinfo())
     
     def Close_Connection(self):
@@ -178,7 +177,7 @@ class DB:
             self.cursor.commit()
             return 0
         except Exception as ex:
-            print ( "\tHas error when delete sensor information, at module Delete_Sensor_Information, in file Connect_DB.py".format(ex))
+            print ( "\tHas error {} when delete sensor information, at module Delete_Sensor_Information, in file Connect_DB.py".format(ex))
         return ret
         
     def Insert_Queue_Examination(self, hospital_ID, building_code, room_code, patient_ID, sensor_id):
@@ -199,7 +198,7 @@ class DB:
             self.cursor.commit()
             return 0, row[0]
         except Exception as e:
-            print("\tHas error when inserting queue examination, at module Insert_Queue_Examination in file Connect_DB.py: {}".format(e))
+            print("\tHas error {} when inserting queue examination, at module Insert_Queue_Examination in file Connect_DB.py".format(e))
             return -1, None
 
     def Delete_Queue_Examination(self, H_ID, Building_code, Exam_Room_Code, STT):

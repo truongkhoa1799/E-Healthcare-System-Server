@@ -47,8 +47,6 @@ KNN_WEIGHTS = 'distance'
 
 FRAC_NUMBER_USERS_RECOGNIZED = 0.7
 NUMBER_USERS_RECOGNIZED = 12
-# OPT_NEW_PATIENT = 0
-# OPT_TEMP_PATIENT = 0
 
 CREATE_USER_REPONSE_METHOD = "Validate_User"
 
@@ -78,8 +76,7 @@ class Parameters:
             "3": "Create_New_Device", 
             "4": "Get_Examination_Room",
             "5": "Submit_Examination",
-            "6": "Create_Temp_Patient",
-            "7": "Activate_Temp_Patient"
+            "6": "Create_Temp_Patient"
         }
 
 

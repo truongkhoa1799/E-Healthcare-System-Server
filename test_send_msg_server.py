@@ -96,32 +96,28 @@ def Get_Exam_Room():
     server.Get_Exam_Room()
     while (server.has_response == False):
         continue
-
-def test_create_temp_user(user_id, user_information):
-    para.face_recognition = FaceRecognition()
-    list_image_encoeded = ""
-    for img in __image_files_in_folder(ORIGINAL_DATA + '/train/' + str(user_id)):
-        loaded_img = cv2.imread(img)
-        # print("Loaded image {} ".format(img))
-        
-        ret, face = para.face_recognition.Get_Face(loaded_img)
-        if ret == 0:
-            embedded_face = para.face_recognition.Encoding_Face(face)
-            encoded_img_string = Compose_String(embedded_face)
-            list_image_encoeded += encoded_img_string + ' '
-        else:
-            print("Has no face")
-            exit(-1)
-    
-    server.Insert_Temp_Patient(user_information, list_image_encoeded)
-    while (server.has_response == False):
-        continue
-
 def activate_temp_patient(user_id):
     server.Activate_Temp_Patient(user_id)
 
 
-def Submit_Examiantion():
+def Submit_Examiantion(user_id = None):
+    print(user_id)
+    list_image_encoeded = ""
+    if user_id is not None:
+        para.face_recognition = FaceRecognition()
+        for img in __image_files_in_folder(ORIGINAL_DATA + '/train/' + str(user_id)):
+            loaded_img = cv2.imread(img)
+            # print("Loaded image {} ".format(img))
+            
+            ret, face = para.face_recognition.Get_Face(loaded_img)
+            if ret == 0:
+                embedded_face = para.face_recognition.Encoding_Face(face)
+                encoded_img_string = Compose_String(embedded_face)
+                list_image_encoeded += encoded_img_string + ' '
+            else:
+                print("Has no face")
+                exit(-1)
+            
     msg = {
         'request_id': '44b6064c-5fd1-443e-ad8f-ef5ef0ffd795', 
         'type_request': '5', 
@@ -140,7 +136,7 @@ def Submit_Examiantion():
         'weight': '70.4'
     }
 
-    server.Submit_Examination(msg)
+    server.Submit_Examination(msg, list_image_encoeded)
     while (server.has_response == False):
         continue
 
@@ -272,13 +268,13 @@ if __name__ == '__main__':
     # test_create_new_patient(8, kiet)
     # test_validate(1)
     # test_validate(8)
-    test_validate(3)
+    # test_validate(3)
     # receive_img()
     # test_create_temp_user(9, temp_patient)
     # activate_temp_patient(9)
     # test_validate(9)
     # Get_Exam_Room()
-    # Submit_Examiantion()
+    Submit_Examiantion()
     # create_new_device(1, 'A1', 'XB00000002')
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')

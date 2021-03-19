@@ -2,22 +2,24 @@ from re import L
 import numpy as np
 from parameters import *
 
-def Create_Temp_Patient(user_information, request_data):
+def Create_Temp_Patient(request_data):
     flg_insert_patient_info = False
     flg_insert_patient_img = False
     try:
-        first_name = str(user_information['first_name'])
-        last_name = str(user_information['last_name'])
-        date_of_birth = str(user_information['date_of_birth'])
-        gender = str(user_information['gender'])
-        address = str(user_information['address'])
-        phone_number = str(user_information['phone_number'])
-        ssn = str(user_information['ssn'])
-        user_name = str(user_information['user_name'])
-        password = str(user_information['password'])
-        e_mail = str(user_information['e_meail'])
+        # Prepare information for new user
+        first_name = 'temp'
+        last_name = 'temp'
+        date_of_birth = '1900-01-01'
+        gender = 'm'
+        address = 'temp'
+        phone_number = '0971215000'
+        ssn = '000000000'
+        user_name = 'temp'
+        password = 'temp123'
+        e_mail = 'temp123@gmail.com'
         # Specify valid flag for temporary patient
         flag_valid = '0'
+        
         
         # patient_id: int
         patient_ID = para.db.Insert_New_Patient(first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid)
@@ -42,7 +44,7 @@ def Create_Temp_Patient(user_information, request_data):
                 
                 flg_insert_patient_img = True if flg_insert_patient_img == False else True
 
-        return {'return': 0, 'msg': patient_ID}
+        return 0, patient_ID
 
     except Exception as e:
         print("\tHas error at def: Create_Temp_Patient in module: create_temp_patient. {}".format(e))
@@ -54,4 +56,4 @@ def Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_in
         para.db.Delete_Patien_Img(patient_ID)
     if flg_insert_patient_info:
         para.db.Delete_Patient(patient_ID)
-    return {'return': -1, 'msg': message}
+    return  -1, message

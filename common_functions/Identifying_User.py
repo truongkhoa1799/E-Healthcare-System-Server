@@ -80,34 +80,6 @@ class IdentifyUser:
             knn_clf = pickle.load(f)
             return 0, knn_clf
 
-    #################################################################################
-    # __Count_Face                                                                #                    
-    # Input:                                                                        #
-    #   model_path      :   path to save model                                      #
-    # Output:                                                                       #
-    #   ret             :   -1 no path, 0 success                                   #
-    #   knn_clf         :   Model                                                   #
-    #################################################################################
-    def __Get_Most_Face(self):
-        freq = {}
-        max_people = 0
-        return_user_id = None
-
-        for user_id in para.list_user_id: 
-            if (user_id['user_id'] in freq): 
-                freq[user_id['user_id'] ] += 1
-            else: 
-                freq[user_id['user_id'] ] = 1
-            
-            if freq[user_id['user_id'] ] > max_people:
-                max_people = freq[user_id['user_id'] ]
-                return_user_id = user_id['user_id'] 
-                
-        if len(para.list_user_id) > 20 and max_people >= THRESHOLD_PATIENT_REC*len(para.list_user_id):
-            return return_user_id
-        else:
-            return -1
-    
     ###############################################################################################
     # GetFaceID                                                                                   #                    
     # Input:                                                                                      #
