@@ -1,5 +1,4 @@
 import os
-import json
 import pickle
 import numpy as np
 import sys
@@ -7,6 +6,7 @@ sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
 
 from sklearn import neighbors
 from parameters import *
+from common_functions.utils import LogMesssage
 
 class IdentifyUser:
     ###############################################################################################
@@ -24,16 +24,16 @@ class IdentifyUser:
 
         ret, self.__list_patient_ID, self.__list_embedded_face = self.__LoadData()
         if ret == -1:
-            print("There is no user id or encoding face face to load")
+            LogMesssage('There is no user id or encoding face face to load', opt=2)
             exit(-1)
 
         ret, self.__knn_clf = self.__LoadKNNModel()
         if ret == -1:
-            print("There is KNN model to load")
+            LogMesssage('There is KNN model to load', opt=2)
             exit(-1)
         
-        print("\tLoaded users data for encoding")
-        print("\tNumber of users: {}".format(len(self.__list_patient_ID)//5))
+        LogMesssage('\tLoaded users data for encoding')
+        LogMesssage('\tNumber of users: {num_users}'.format(num_users=len(self.__list_patient_ID)//5))
         
 
         # print(self.__list_embedded_face)
@@ -117,23 +117,55 @@ class IdentifyUser:
             if freq[user_id['user_id']] > max_people:
                 max_people = freq[user_id['user_id']]
                 return_user_id = user_id['user_id']
+
         
-        print("\tNumber of received encoding face: {}".format(len(list_encoded_img)))
-        print("\tNumber of predict face: {}".format(len(list_user_id)))
-        print("\tMax number users predicted: {}".format(max_people))
-        # print(para.list_user_id)
+        LogMesssage('\tNumber of encoding face Number of predict face : {face_received}'.format(face_received=len(list_encoded_img)))
+        LogMesssage('\tNumber of face predicted                       : {face_predicted}'.format(face_predicted=len(list_user_id)))
+        LogMesssage('\tMax number users predicted                     : {max_user_predicted}'.format(max_user_predicted=max_people))
+        
 
         if len(list_user_id) != 0:
             list_distance = [np.float64(user_id['distance']) for user_id in list_user_id]
-            print("\tMax distance of predict face: {}".format(np.max(list_distance)))
-            print("\tMin distance of predict face: {}".format(np.min(list_distance)))
-            print("\tMean distance of predict face: {}".format(np.mean(list_distance)))
+            LogMesssage('\tMax distance of predict face                   : {max}'.format(max=np.max(list_distance)))
+            LogMesssage('\tMin distance of predict face                   : {min}'.format(min=np.min(list_distance)))
+            LogMesssage('\tMean distance of predict face                  : {mean}'.format(mean=np.mean(list_distance)))
 
         if len(list_user_id) > NUMBER_USERS_RECOGNIZED and max_people >= FRAC_NUMBER_USERS_RECOGNIZED*len(list_user_id):
             return return_user_id
         else:
             return -1
+
     
+    def __TrainKNN(self):
+        print("\tStarting train KNN Model")
+        # Create and train the KNN classifier
+        if len(self.__list_patient_ID) == 5:
+            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
+        else:
+            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=NUM_NEIGHBROS, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
+
+        # __known_face_encodings is list of ndarray
+        # __known_face_IDs is list of str
+        knn_clf.fit(self.__list_embedded_face, self.__list_patient_ID)
+
+        print("\tFinishing train KNN Model")
+        self.__knn_clf = knn_clf
+
+    def __SaveData(self):
+        with open(PATH_USER_IMG_ENCODED, 'wb') as fp_2:
+            pickle.dump(self.__list_embedded_face, fp_2)
+        
+        with open(PATH_USER_ID, mode='wb') as fp_1:
+            pickle.dump(self.__list_patient_ID, fp_1)
+
+    def __SaveKNNModel(self):
+        with open(KNN_MODEL_PATH, 'wb') as f:
+            pickle.dump(self.__knn_clf, f)
+
+
+######################################################################################
+# PUBLIC METHOD                                                                      #
+######################################################################################
     ######################################################################################
     # Identifying user                                                                   #
     # return:                                                                            #
@@ -164,35 +196,10 @@ class IdentifyUser:
                 res_msg = {'return': -1}
 
             return res_msg
-        except Exception as ex:
-            print ( "\tHas error at module Identifying_User in identifying_user.py: {}".format(ex))
+        except Exception as e:
+            LogMesssage('\tHas error at module Identifying_User in identifying_user.py: {error}'.format(error=e), opt=2)
             return {'return': -1}
     
-    def __TrainKNN(self):
-        print("\tStarting train KNN Model")
-        # Create and train the KNN classifier
-        if len(self.__list_patient_ID) == 5:
-            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=5, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
-        else:
-            knn_clf = neighbors.KNeighborsClassifier(n_neighbors=NUM_NEIGHBROS, algorithm=KNN_ALGORITHM, weights=KNN_WEIGHTS)
-
-        # __known_face_encodings is list of ndarray
-        # __known_face_IDs is list of str
-        knn_clf.fit(self.__list_embedded_face, self.__list_patient_ID)
-
-        print("\tFinishing train KNN Model")
-        self.__knn_clf = knn_clf
-
-    def __SaveData(self):
-        with open(PATH_USER_IMG_ENCODED, 'wb') as fp_2:
-            pickle.dump(self.__list_embedded_face, fp_2)
-        
-        with open(PATH_USER_ID, mode='wb') as fp_1:
-            pickle.dump(self.__list_patient_ID, fp_1)
-
-    def __SaveKNNModel(self):
-        with open(KNN_MODEL_PATH, 'wb') as f:
-            pickle.dump(self.__knn_clf, f)
 
     def Add_New_Patient(self, patient_ID, list_embedded_face):
         patient_ID = int(patient_ID)
@@ -210,10 +217,11 @@ class IdentifyUser:
             self.__SaveKNNModel()
             return 0
         except Exception as e:
-            print("Has error at Add_New_Patient in identifier_user: {}".format(e))
+            LogMesssage('\tHas error at Add_New_Patient in identifier_user: {error}.'.format(error=e), opt=2)
             self.__list_patient_ID = old_list_patient_ID
             self.__list_embedded_face = old_list_embedded_face
             self.__knn_clf = old_knn_clf
+            LogMesssage('\tSuccessfully reverse to previous data', opt=2)
             return -1
     
     def Init_Data(self):
@@ -223,6 +231,25 @@ class IdentifyUser:
         self.__SaveData()
         self.__SaveKNNModel()
 
+    def Delete_User(self, user_id):
+        check_exist = False
+        for i in range(len(self.__list_patient_ID)-1, -1, -1):
+            if self.__list_patient_ID[i] == user_id:
+                check_exist = True
+                self.__list_embedded_face.pop(i)
+                self.__list_patient_ID.pop(i)
+                # print(i)
+        
+        if check_exist == False:
+            return -1
+        # print(self.__list_patient_ID)
+        self.__TrainKNN()
+        self.__SaveData()
+        self.__SaveKNNModel()
+        return 0
+
+
 
 # test = IdentifyUser()
+# test.Delete_User(74)
 # test.Init_Data()

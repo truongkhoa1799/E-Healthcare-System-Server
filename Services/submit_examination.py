@@ -1,14 +1,14 @@
 from parameters import *
 from services.create_temp_patient import *
+from common_functions.utils import LogMesssage
 
 def Submit_Examination(properties, list_embedded_face):
-    flag_insert_user_information = False
-    flag_insert_sensor = False
-    sensor_id = None
     stt = None
-    # print(properties)
+    sensor_id = None
+    flag_insert_sensor = False
+    flag_insert_user_information = False
+
     try:
-        # print(properties)
         # TRANSFER BACK PROPERTIES FROM STRING TO FLOAT
         hospital_ID = int(properties['hospital_ID'])
         building_code = str(properties['building_code'])
@@ -29,13 +29,21 @@ def Submit_Examination(properties, list_embedded_face):
             # simulate error when insert temp patient
             # ret = -1
             if ret == -1:
-                print("\t\t{}".format(patient_ID))
                 return {'return': -1, 'msg': 'Fail to submit examination'}
             
-            print("\t\tNew patient with ID {} has sumbitted examination".format(patient_ID))
+            LogMesssage('\tNew patient with ID {} has sumbitted examination'.format(patient_ID))
             flag_insert_user_information = True
-        else:
-            print("\t\tPatient with ID {} has sumbitted examination".format(patient_ID))
+
+        elif patient_ID > 0:
+            LogMesssage('\tPatient with ID {} has sumbitted examination'.format(patient_ID))
+
+        elif patient_ID == 0 or patient_ID < -1:
+            message = 'Invalid patient_ID'
+            LogMesssage('\t{msg}'.format(msg=message), opt=2)
+            return Error_Functions_Submit_Examination( 
+                flag_insert_user_information, flag_insert_sensor,
+                patient_ID, sensor_id, message)
+
 
         # First insert into sensor information
         # If success: go next state
@@ -45,12 +53,12 @@ def Submit_Examination(properties, list_embedded_face):
         # ret = -1
         if ret == -1:
             message = "Fail to insert sensor information of patient into database"
-            print("\t\t{}".format(message))
+            LogMesssage('\t{msg}'.format(msg=message))
             return Error_Functions_Submit_Examination( 
                 flag_insert_user_information, flag_insert_sensor,
                 patient_ID, sensor_id, message)
         
-        print("\t\tInsert successfully sensor information with ID {}".format(sensor_id))
+        LogMesssage('\tInsert successfully sensor information with ID {id}'.format(id=sensor_id))
         flag_insert_sensor = True
         
         ret, stt = para.db.Insert_Queue_Examination(hospital_ID, building_code, room_code, patient_ID, sensor_id)
@@ -58,17 +66,17 @@ def Submit_Examination(properties, list_embedded_face):
         # ret = -1
         if ret == -1:
             message = "Fail to insert queue examination of patient into database"
-            print("\t\t{}".format(message))
+            LogMesssage('\t{msg}'.format(msg=message), opt=2)
             return Error_Functions_Submit_Examination( 
                 flag_insert_user_information, flag_insert_sensor,
                 patient_ID, sensor_id, message)
-
-        print("\t\tInsert successfully examination with ID {} at room {}".format(stt, "{}-{}-{}".format(hospital_ID, building_code, room_code)))
+        
+        LogMesssage('\tInsert successfully examination with ID {exam_id} at room {room_id}'.format(exam_id=stt, room_id="{}-{}-{}".format(hospital_ID, building_code, room_code)))
         return {'return': 0, 'stt': stt}
 
     except Exception as error:
         message = "Has error at module Submit_Examination in file submit_examination: {}".format(error)
-        print("\t\t{}".format(message))
+        LogMesssage('\t{msg}'.format(msg=message), opt=2)
         return Error_Functions_Submit_Examination( 
                 flag_insert_user_information, flag_insert_sensor,
                 patient_ID, sensor_id, message)
@@ -79,11 +87,10 @@ def Error_Functions_Submit_Examination(
 
     if flag_insert_sensor:
         para.db.Delete_Sensor_Information(sensor_id)
-        print("\t\tDelete successfully sensor information with ID {}".format(sensor_id))
+        LogMesssage('\tDelete successfully sensor information with ID {id}'.format(id=sensor_id), opt=2)
 
     if flag_insert_user_information:
-        para.db.Delete_Patien_Img(patient_ID)
         para.db.Delete_Patient(patient_ID)
-        print("\t\tDelete temp patient with ID {}".format(patient_ID))
+        LogMesssage("\tDelete temp patient with ID {id}".format(id=patient_ID), opt=2)
 
     return {'return': -1, 'msg': message}

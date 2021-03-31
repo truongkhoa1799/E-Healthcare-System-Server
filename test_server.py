@@ -143,10 +143,9 @@ class Server:
         try:
             event_data_batch = self.__producer.create_batch()
             try:
-                if list_image_encoeded != "":
+                if int(msg['patient_ID']) == -1:
                     print("Create new user")
                     data = EventData(list_image_encoeded)
-                    msg['patient_ID'] = '-1'
                 else:
                     data = EventData("Submit Examiantion room")
                 

@@ -1,4 +1,3 @@
-import time
 import pickle
 import numpy as np
 import cv2
@@ -8,13 +7,26 @@ sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
 # import face_recognition
 import dlib
 from parameters import *
+from common_functions.utils import LogMesssage
 
 class FaceRecognition:
     def __init__(self):
-        self.__pose_predictor_5_point = dlib.shape_predictor(PREDICTOR_5_POINT_MODEL)
+        # pose 68 points and point 5 do not affect the performance of encoding
+        if MODEL_SHAPE_PREDICTOR == '68':
+            LogMesssage('\tLoad SHAPE_PREDICTOR 68')
+            self.__pose_predictor = dlib.shape_predictor(PREDICTOR_68_POINT_MODEL)
+        else:
+            LogMesssage('\tLoad SHAPE_PREDICTOR 5')
+            self.__pose_predictor = dlib.shape_predictor(PREDICTOR_5_POINT_MODEL)
+        
+        if MODEL_FACE_DETECTOR == 'cnn':
+            LogMesssage('\tLoad FACE_DETECTOR CNN')
+            self.__face_detector_cnn = dlib.cnn_face_detection_model_v1(CNN_FACE_DETECTOR)
+        else:
+            LogMesssage('\tLoad FACE_DETECTOR HOG')
+            self.__face_detector = dlib.get_frontal_face_detector()
+
         self.__face_encoder = dlib.face_recognition_model_v1(RESNET_MODEL)
-        self.__face_detector_cnn = dlib.cnn_face_detection_model_v1(CNN_FACE_DETECTOR)
-        self.__face_detector = dlib.get_frontal_face_detector()
         
         test_img = None
         with open ('/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/test_encoding_img', mode='rb') as f1:
@@ -28,7 +40,8 @@ class FaceRecognition:
         # cv2.imshow('test', test_img[ret[0]:ret[2], ret[3]:ret[1]])
         # cv2.waitKey(2000)
         # time.sleep(1)
-        print("\tDone load dlib model")
+
+        LogMesssage('\tDone load dlib model')
     
     def __AdjustBright(self, img):
         hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) #convert it to hsv
@@ -46,7 +59,7 @@ class FaceRecognition:
         # return BRG image
         return ret_img
         
-    def __Preprocessing_Img(self, img):
+    def Preprocessing_Img(self, img):
         resized_img = cv2.resize(img, (IMAGE_SIZE,IMAGE_SIZE))
         resized_adjusted_bright_img = self.__AdjustBright(resized_img)
         RGB_resized_adjusted_bright_img = cv2.cvtColor(resized_adjusted_bright_img, cv2.COLOR_BGR2RGB)
@@ -61,7 +74,7 @@ class FaceRecognition:
     #   None            128-vector                        :   encoding vector                     #
     ###############################################################################################
     def __face_encodings(self, face_image, known_face_locations):
-        raw_landmarks = self.__raw_face_landmarks(face_image, known_face_locations)
+        raw_landmarks = self.Get_Landmarks(face_image, known_face_locations)
         return [np.array(self.__face_encoder.compute_face_descriptor(face_image, raw_landmark_set, 1)) for raw_landmark_set in raw_landmarks]
 
     ###############################################################################################
@@ -93,7 +106,7 @@ class FaceRecognition:
         """
         return max(css[0], 0), min(css[1], image_shape[1]), min(css[2], image_shape[0]), max(css[3], 0)
 
-    def __raw_face_locations(self, img, number_of_times_to_upsample, model):
+    def __raw_face_locations(self, img, number_of_times_to_upsample):
         """
         Returns an array of bounding boxes of human faces in a image
 
@@ -103,7 +116,7 @@ class FaceRecognition:
                     deep-learning model which is GPU/CUDA accelerated (if available). The default is "hog".
         :return: A list of dlib 'rect' objects of found face locations
         """
-        if model == "cnn":
+        if MODEL_FACE_DETECTOR == "cnn":
             return self.__face_detector_cnn(img, number_of_times_to_upsample)
         else:
             return self.__face_detector(img, number_of_times_to_upsample)
@@ -115,16 +128,16 @@ class FaceRecognition:
         else:
             face_locations = [self.__css_to_rect(face_location) for face_location in face_locations]
 
-        return [self.__pose_predictor_5_point(face_image, face_location) for face_location in face_locations]
+        return [self.__pose_predictor(face_image, face_location) for face_location in face_locations]
 
     def Encoding_Face(self, img):
         # Pre-processing
-        RGB_resized_adjusted_bright_img = self.__Preprocessing_Img(img)
+        RGB_resized_adjusted_bright_img = self.Preprocessing_Img(img)
 
         embedded_face = self.__face_encodings(RGB_resized_adjusted_bright_img, [(0, IMAGE_SIZE, IMAGE_SIZE,0)])[0]
         return embedded_face
 
-    def __Get_Face_Locations(self, img, model):
+    def __Get_Face_Locations(self, img):
         """
         Returns an array of bounding boxes of human faces in a image
 
@@ -134,34 +147,53 @@ class FaceRecognition:
                     deep-learning model which is GPU/CUDA accelerated (if available). The default is "hog".
         :return: A list of tuples of found face locations in css (top, right, bottom, left) order
         """
-        if model == "cnn":
-            return [self.__trim_css_to_bounds(self.__rect_to_css(face.rect), img.shape) for face in self.__raw_face_locations(img, 1, model)]
+        if MODEL_FACE_DETECTOR == "cnn":
+            return [self.__trim_css_to_bounds(self.__rect_to_css(face.rect), img.shape) for face in self.__raw_face_locations(img, 1)]
         else:
-            return [self.__trim_css_to_bounds(self.__rect_to_css(face), img.shape) for face in self.__raw_face_locations(img, 1, model)]
+            return [self.__trim_css_to_bounds(self.__rect_to_css(face), img.shape) for face in self.__raw_face_locations(img, 1)]
 
     def Get_Face(self, img):
+        try:
+            ret, face_location = self.Get_Location_Face(img)
+            if ret == 0:
+            # img[top:bottom, left:right]
+                face = img[face_location[0]:face_location[1], face_location[2]:face_location[3]]
+                return ret, face
+            else:
+                return -1, None
+        except Exception as e:
+            LogMesssage('Has error in Get_Location_Face of face_recognition: {error}'.format(error=e), opt=2)
+            return -1, None
+    
+    def Get_Landmarks(self, face_image, known_face_locations):
+        raw_landmarks = self.__raw_face_landmarks(face_image, known_face_locations)
+        return raw_landmarks
+    
+    def Get_Location_Face(self, img):
         try:
             fra = 300 / max(img.shape[0], img.shape[1]) 
             resized_img = cv2.resize(img, (int(img.shape[1] * fra), int(img.shape[0] * fra)))
             GRAY_resized_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
 
-            ret = self.__Get_Face_Locations(GRAY_resized_img, model = 'hog')
+            ret = self.__Get_Face_Locations(GRAY_resized_img)
             if len(ret) == 0:
-                print("\tCannot find location of face in image")
+                LogMesssage('Cannot find location of face in image', opt=2)
                 return -1, None
             elif len(ret) != 1:
-                print("\tHas many faces in image")
+                LogMesssage('Has many faces in image', opt=2)
                 return -2, None
+
+            # location = (top, rigth, bottom, left)
 
             top = int(ret[0][0] / fra)
             bottom = int(ret[0][2] / fra)
             left = int(ret[0][3] / fra)
             right = int(ret[0][1] / fra)
-
-            face = img[top:bottom, left:right]
-            return 0, face
+            
+            face_location = (top, bottom, left, right)
+            return 0, face_location
         except Exception as e:
-            print("Has error in Get_Face of face_recognition, {}".format(e))
+            LogMesssage('Has error in Get_Face of face_recognition, {error}'.format(error=e), opt=2)
             return -3, None
 
 # test = FaceRecognition()

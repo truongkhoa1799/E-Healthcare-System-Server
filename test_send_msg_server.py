@@ -124,9 +124,9 @@ def Submit_Examiantion(user_id = None):
         'device_ID': 'test_device', 
 
         'hospital_ID': '1', 
-        'building_code': 'C1', 
-        'room_code': '101', 
-        'patient_ID': '1', 
+        'building_code': 'A1', 
+        'room_code': '102', 
+        'patient_ID': '-1', 
         
         'blood_pressure': '120', 
         'pulse': '98', 
@@ -271,10 +271,10 @@ if __name__ == '__main__':
     # test_validate(3)
     # receive_img()
     # test_create_temp_user(9, temp_patient)
-    # activate_temp_patient(9)
-    # test_validate(9)
+    # activate_temp_patient(76)
+    # test_validate(74)
     # Get_Exam_Room()
-    Submit_Examiantion()
+    Submit_Examiantion(8)
     # create_new_device(1, 'A1', 'XB00000002')
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')

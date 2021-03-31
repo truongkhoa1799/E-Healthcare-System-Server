@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
 from parameters import *
 from common_functions.Connect_DB import *
 

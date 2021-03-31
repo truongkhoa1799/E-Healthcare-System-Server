@@ -1,222 +1,43 @@
 import pyodbc
+from common_functions.utils import LogMesssage
+from threading import Timer
+
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, ** self.kwargs)
 
 class DB:
     def __init__(self):
-        server = "hospitaldb.database.windows.net"
-        username = "PYTHON_SERVER"
-        password = "Database_Hospital@123"
-        database = "HospitalDB"
+        self.__server = "hospitaldb.database.windows.net"
+        self.__username = "PYTHON_SERVER"
+        self.__password = "Database_Hospital@123"
+        self.__database = "HospitalDB"
 
         # self.conn = pymssql.connect(server, user, password, database)
-        self.connect = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+        self.connect = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+ self.__password)
         self.cursor = self.connect.cursor()
+
+        self.__reconnect=RepeatTimer(120, self.__ReInitConnection)
+        self.__reconnect.daemon = True
+        self.__reconnect.start()
         # print(self.cursor.getinfo())
-    
+
+    def __ReInitConnection(self):
+        LogMesssage('Reconnect to DB server')
+        self.connect = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+ self.__password)
+        self.cursor = self.connect.cursor()
+
     def Close_Connection(self):
         self.cursor.close()
         self.connect.close()
-    
-    def Get_Information(self):
-        sql_st = 'SELECT * FROM hospital.PATIENT_IMG'
-        self.cursor.execute(sql_st)
-        row = self.cursor.fetchone()
-        temp = ""
-        while row:
-            temp = row[2]
-            row = self.cursor.fetchone()
 
-        temp = temp.split('/')
-        print(len(temp))
-    
-    def Get_Available_Device_ID(self):
-        try:
-            sql_st = 'SELECT MAX(Device_ID) AS max_device FROM hospital.DEVICE;'
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-            if row.max_device == None:
-                return 1
-            else:
-                return int(row[-1]) + 1
-        except Exception as ex:
-            print("\tUnexpected error {0} while get available device_ID".format(ex))
-            return None
-
-# MODULE FOR CREATE_NEW_DEVICE
-    # return: 0: exist, -1 not exist hospital_id
-    def Check_Valid_Hospital(self, hospital_ID):
-        try:
-            sql_st = '''SELECT 1
-                        FROM hospital.HOSPITAL AS H
-                        WHERE H.Hospital_ID = {};'''.format(hospital_ID)
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-
-            if row != None:
-                return 0
-            else:
-                return -1
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while check valid hospital".format(ex))
-
-    # return: 0: exist, -1 not exist hospital_id
-    def Check_Valid_Buidling(self, hospital_ID, building_code):
-        try:
-            sql_st = '''SELECT 1
-                        FROM hospital.BUILDING AS B
-                        WHERE   B.Hospital_ID = {}
-                            AND B.Building_Code = '{}';'''.format(hospital_ID, building_code)
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-
-            if row != None:
-                return 0
-            else:
-                return -1
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while check valid bulding".format(ex))
-
-    # return: 0: exist, -1 not exist hospital_id
-    def Check_Valid_Device(self, device_code):
-        try:
-            sql_st = '''SELECT 1
-                        FROM hospital.DEVICE AS D
-                        WHERE D.Device_Code = '{}';'''.format(device_code)
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-
-            if row == None:
-                return 0
-            else:
-                return -1
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while check valid new device".format(ex))
-    
-    def Insert_New_Device(self, device_ID, device_code, hospital_ID, building_code):
-        ret = -1
-        sql_st = """\
-        DECLARE @return_status INT;
-            EXEC hospital.Add_Device \
-            @Device_ID = {}, \
-            @Device_Code = '{}', \
-            @Hospital_ID = {}, \
-            @Building_Code = '{}', \
-            @para_out = @return_status OUTPUT;
-        SELECT @return_status as ret;
-        """.format(device_ID, device_code, hospital_ID, building_code)
-        try:
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-            ret = row.ret
-            self.cursor.commit()
-        except Exception as ex:
-            print ( "\tHas error when insert device information: {}".format(msg))
-            return None
-
-        return ret, ""
-
-    def Delete_All_Device(self):
-        ret = -1
-        sql_st = """\
-            DELETE from hospital.device;
-        """
-        try:
-            self.cursor.execute(sql_st)
-            self.cursor.commit()
-            return 0
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while create new device".format(ex))
-
-        return ret
-
-    def Get_Patient_Information(self, user_ID):
-        # Get Name, birthday, Phone, Address
-        sql_st = '''
-            SELECT CONCAT(Last_Name, ' ', First_Name) AS Name, Date_Of_Birth, Phone_Number, Address
-            FROM hospital.PATIENT
-            WHERE Patient_ID = {};
-        '''.format(user_ID)
-        try:
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-            return 0, row[0], row[1], row[2], row[3]
-        except Exception as e:
-            print("\tHas error when getting patient information: {}".format(e))
-            return -1, 0, 0, 0, 0
-    
-
-# MODULE FOR SUBMISSION
-    def Insert_Sensor_Information(self, blood_pressure, pulse, spo2, thermal, height, weight):
-        # Get Sensor_information_id
-        sql_st = '''DECLARE @return_status INT;
-                    EXEC hospital.Add_Sensor_Infor
-                        @Weight = {},
-                        @Height = {},
-                        @Temperature = {},
-                        @Heart_Pulse = {},
-                        @Blood_Pressure = {},
-                        @SPO2 = {},
-                        @para_out = @return_status OUTPUT;
-                    SELECT @return_status as ret;'''.format(weight, height, thermal, pulse, blood_pressure, spo2)
-        try:
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-            # DONT FORGET TO COMMIT
-            self.cursor.commit()
-            return 0, row[0]
-        except Exception as e:
-            print("\tHas error when inserting sensor information, at module Insert_Sensor_Information in file Connect_DB.py: {}".format(e))
-            return -1, None
-    
-    def Delete_Sensor_Information(self, sensor_ID):
-        ret = -1
-        sql_st = """\
-            DELETE hospital.SENSOR_INFORMATION
-            WHERE ID = {};""".format(sensor_ID)
-        try:
-            self.cursor.execute(sql_st)
-            self.cursor.commit()
-            return 0
-        except Exception as ex:
-            print ( "\tHas error {} when delete sensor information, at module Delete_Sensor_Information, in file Connect_DB.py".format(ex))
-        return ret
-        
-    def Insert_Queue_Examination(self, hospital_ID, building_code, room_code, patient_ID, sensor_id):
-        # Get Sensor_information_id
-        sql_st = '''DECLARE @return_status INT;
-                    EXEC hospital.Add_Queue_Examination
-                        @H_ID = {},
-                        @Building_Code = '{}',
-                        @Exam_Room_Code = '{}',
-                        @Patient_ID = {},
-                        @Sensor_ID = {},
-                        @para_out = @return_status OUTPUT;
-                    SELECT @return_status as ret;'''.format(hospital_ID, building_code, room_code, patient_ID, sensor_id)
-        try:
-            self.cursor.execute(sql_st)
-            row = self.cursor.fetchone()
-            # DONT FORGET TO COMMIT
-            self.cursor.commit()
-            return 0, row[0]
-        except Exception as e:
-            print("\tHas error {} when inserting queue examination, at module Insert_Queue_Examination in file Connect_DB.py".format(e))
-            return -1, None
-
-    def Delete_Queue_Examination(self, H_ID, Building_code, Exam_Room_Code, STT):
-        ret = -1
-        sql_st = """\
-            DELETE hospital.QUEUE_EXAMINATION
-            WHERE   H_ID = {}
-                AND Building_code = '{}' 
-                AND Exam_Room_Code = '{}' 
-                AND STT = {};""".format(H_ID, Building_code, Exam_Room_Code, STT)
-        try:
-            self.cursor.execute(sql_st)
-            self.cursor.commit()
-            return 0
-        except Exception as ex:
-            print ( "\tHas error when delete queue examination, at module Delete_Queue_Examination, in file Connect_DB.py".format(ex))
-    
-# MODULE FOR CREATE_NEW_USER
+########################################################################
+# Patient Information                                                  #
+########################################################################
+    ####################################################################
+    # INSERT                                                           #
+    ####################################################################
     def Insert_New_Patient(self, first_name, last_name, date_of_birth, gender, address, phone_number, ssn, user_name, password, e_mail, flag_valid):
         patient_ID = -1
         sql_st = """\
@@ -242,8 +63,8 @@ class DB:
             row = self.cursor.fetchone()
             patient_ID = row.ret_patient_ID
             self.cursor.commit()
-        except Exception as ex:
-            print ( "\tHas error at module: Insert_New_Patient in Connect_DB. {} ".format(ex))
+        except Exception as e:
+            LogMesssage('\tHas error at module: Insert_New_Patient in Connect_DB. {error}'.format(error=e), opt=2)
 
         return patient_ID
     
@@ -262,10 +83,28 @@ class DB:
             row = self.cursor.fetchone()
             ret = row.ret
             self.cursor.commit()
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while insert image patient".format(ex))
+        except Exception as e:
+            LogMesssage('\tHas error at module: Insert_Patient_Img in Connect_DB. {error}'.format(error=e), opt=2)
 
         return ret
+
+    ####################################################################
+    # GET                                                              #
+    ####################################################################
+    def Get_Patient_Information(self, user_ID):
+        # Get Name, birthday, Phone, Address
+        sql_st = '''
+            SELECT CONCAT(Last_Name, ' ', First_Name) AS Name, Date_Of_Birth, Phone_Number, Address
+            FROM hospital.PATIENT
+            WHERE Patient_ID = {};
+        '''.format(user_ID)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            return 0, row[0], row[1], row[2], row[3]
+        except Exception as e:
+            LogMesssage('\tHas error at module: Get_Patient_Information in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, 0, 0, 0, 0
 
     def Get_Patient_Img(self, user_id):
         ret = []
@@ -281,37 +120,251 @@ class DB:
             return 0, ret
 
         except Exception as e:
-            print("Has error when getting patient image: {}".format(e))
+            LogMesssage('\tHas error at module: Get_Patient_Img in Connect_DB. {error}'.format(error=e), opt=2)
             return -1, None
     
+    ####################################################################
+    # DELETE                                                           #
+    ####################################################################
     def Delete_Patient(self, patient_ID):
         ret = -1
         sql_st = """\
-            DELETE hospital.Patient
-            WHERE Patient_ID = {};
-        """.format(patient_ID)
+            DELETE FROM hospital.QUEUE_EXAMINATION
+            WHERE Patient_ID = {patient_id};
+
+            DELETE FROM hospital.MEDICATION
+            WHERE Patient_ID = {patient_id};
+
+            DELETE FROM hospital.EXAMINATION
+            WHERE Patient_ID = {patient_id};
+
+            DELETE FROM hospital.PATIENT_IMG
+            WHERE Patient_ID = {patient_id};
+
+            DELETE FROM hospital.PATIENT
+            WHERE Patient_ID = {patient_id};
+        """.format(patient_id = patient_ID)
         try:
             self.cursor.execute(sql_st)
             self.cursor.commit()
             return 0
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while delete new patient".format(ex))
-        return ret
-    
-    def Delete_Patien_Img(self, patient_ID):
-        ret = -1
-        sql_st = """\
-            DELETE hospital.PATIENT_IMG
-            WHERE Patient_ID = {};
-        """.format(patient_ID)
-        try:
-            self.cursor.execute(sql_st)
-            self.cursor.commit()
-            return 0
-        except Exception as ex:
-            print ( "\tUnexpected error {0} while delete new patient".format(ex))
+        except Exception as e:
+            LogMesssage('\tHas error at module: Delete_Patient in Connect_DB. {error}'.format(error=e), opt=2)
         return ret
 
+########################################################################
+# DEVICE                                                               #
+########################################################################
+    ####################################################################
+    # INSERT                                                           #
+    ####################################################################
+    def Insert_New_Device(self, device_ID, device_code, hospital_ID, building_code):
+        ret = -1
+        sql_st = """\
+        DECLARE @return_status INT;
+            EXEC hospital.Add_Device \
+            @Device_ID = {}, \
+            @Device_Code = '{}', \
+            @Hospital_ID = {}, \
+            @Building_Code = '{}', \
+            @para_out = @return_status OUTPUT;
+        SELECT @return_status as ret;
+        """.format(device_ID, device_code, hospital_ID, building_code)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            ret = row.ret
+            self.cursor.commit()
+        except Exception as e:
+            LogMesssage('\tHas error at module: Insert_New_Device in Connect_DB. {error}'.format(error=e), opt=2)
+            return None
+
+        return ret, ""
+
+    ####################################################################
+    # GET                                                              #
+    ####################################################################
+    def Get_Available_Device_ID(self):
+        try:
+            sql_st = 'SELECT MAX(Device_ID) AS max_device FROM hospital.DEVICE;'
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            if row.max_device == None:
+                return 1
+            else:
+                return int(row[-1]) + 1
+        except Exception as e:
+            LogMesssage('\tHas error at module: Get_Available_Device_ID in Connect_DB. {error}'.format(error=e), opt=2)
+            return None
+
+    ####################################################################
+    # CHECK and DELETE                                                 #
+    ####################################################################
+    def Check_Valid_Device(self, device_code):
+        try:
+            sql_st = '''SELECT 1
+                        FROM hospital.DEVICE AS D
+                        WHERE D.Device_Code = '{}';'''.format(device_code)
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+
+            if row == None:
+                return 0
+            else:
+                return -1
+        except Exception as e:
+            LogMesssage('\tHas error at module: Check_Valid_Device in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1
+    
+    def Delete_All_Device(self):
+        ret = -1
+        sql_st = """\
+            DELETE from hospital.device;
+        """
+        try:
+            self.cursor.execute(sql_st)
+            self.cursor.commit()
+            return 0
+        except Exception as e:
+            LogMesssage('\tHas error at module: Delete_All_Device in Connect_DB. {error}'.format(error=e), opt=2)
+
+        return ret
+    
+    def Delete_Device(self, device_ID):
+        ret = -1
+        sql_st = """\
+            DELETE from hospital.device
+            WHERE device_ID = {};
+        """.format(device_ID)
+        try:
+            self.cursor.execute(sql_st)
+            self.cursor.commit()
+            return 0
+        except Exception as e:
+            LogMesssage('\tHas error at module: Delete_Device in Connect_DB. {error}'.format(error=e), opt=2)
+        return ret
+
+########################################################################
+# HOSPITALS                                                            #
+########################################################################
+    # return: 0: exist, -1 not exist hospital_id
+    def Check_Valid_Hospital(self, hospital_ID):
+        try:
+            sql_st = '''SELECT 1
+                        FROM hospital.HOSPITAL AS H
+                        WHERE H.Hospital_ID = {};'''.format(hospital_ID)
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+
+            if row != None:
+                return 0
+            else:
+                return -1
+        except Exception as e:
+            LogMesssage('\tHas error at module: Check_Valid_Hospital in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1
+
+    # return: 0: exist, -1 not exist hospital_id
+    def Check_Valid_Buidling(self, hospital_ID, building_code):
+        try:
+            sql_st = '''SELECT 1
+                        FROM hospital.BUILDING AS B
+                        WHERE   B.Hospital_ID = {}
+                            AND B.Building_Code = '{}';'''.format(hospital_ID, building_code)
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+
+            if row != None:
+                return 0
+            else:
+                return -1
+        except Exception as e:
+            LogMesssage('\tHas error at module: Check_Valid_Buidling in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1
+
+    # return: 0: exist, -1 not exist hospital_id
+    
+########################################################################
+# SENSOR INFORMATION                                                   #
+########################################################################
+    def Insert_Sensor_Information(self, blood_pressure, pulse, spo2, thermal, height, weight):
+        # Get Sensor_information_id
+        sql_st = '''DECLARE @return_status INT;
+                    EXEC hospital.Add_Sensor_Infor
+                        @Weight = {},
+                        @Height = {},
+                        @Temperature = {},
+                        @Heart_Pulse = {},
+                        @Blood_Pressure = {},
+                        @SPO2 = {},
+                        @para_out = @return_status OUTPUT;
+                    SELECT @return_status as ret;'''.format(weight, height, thermal, pulse, blood_pressure, spo2)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            # DONT FORGET TO COMMIT
+            self.cursor.commit()
+            return 0, row[0]
+        except Exception as e:
+            LogMesssage('\tHas error at module: Insert_Sensor_Information in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, None
+    
+    def Delete_Sensor_Information(self, sensor_ID):
+        ret = -1
+        sql_st = """\
+            DELETE hospital.SENSOR_INFORMATION
+            WHERE ID = {};""".format(sensor_ID)
+        try:
+            self.cursor.execute(sql_st)
+            self.cursor.commit()
+            return 0
+        except Exception as e:
+            LogMesssage('\tHas error at module: Delete_Sensor_Information in Connect_DB. {error}'.format(error=e), opt=2)
+        return ret
+
+########################################################################
+# QUEUE EXAMINATION                                                    #
+########################################################################
+    def Insert_Queue_Examination(self, hospital_ID, building_code, room_code, patient_ID, sensor_id):
+        # Get Sensor_information_id
+        sql_st = '''DECLARE @return_status INT;
+                    EXEC hospital.Add_Queue_Examination
+                        @H_ID = {},
+                        @Building_Code = '{}',
+                        @Exam_Room_Code = '{}',
+                        @Patient_ID = {},
+                        @Sensor_ID = {},
+                        @para_out = @return_status OUTPUT;
+                    SELECT @return_status as ret;'''.format(hospital_ID, building_code, room_code, patient_ID, sensor_id)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            # DONT FORGET TO COMMIT
+            self.cursor.commit()
+            return 0, row[0]
+        except Exception as e:
+            LogMesssage('\tHas error at module: Insert_Queue_Examination in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, None
+
+    def Delete_Queue_Examination(self, H_ID, Building_code, Exam_Room_Code, STT):
+        ret = -1
+        sql_st = """\
+            DELETE hospital.QUEUE_EXAMINATION
+            WHERE   H_ID = {}
+                AND Building_code = '{}' 
+                AND Exam_Room_Code = '{}' 
+                AND STT = {};""".format(H_ID, Building_code, Exam_Room_Code, STT)
+        try:
+            self.cursor.execute(sql_st)
+            self.cursor.commit()
+            return 0
+        except Exception as e:
+            LogMesssage('\tHas error at module: Delete_Queue_Examination in Connect_DB. {error}'.format(error=e), opt=2)
+        return ret
+    
+########################################################################
+# GET EXAMINATION ROOM                                                 #
+########################################################################
     def Get_Exam_Room(self, hospital_ID):
         # Get Name, birthday, Phone, Address
         ret = []
@@ -330,7 +383,7 @@ class DB:
             return 0, ret
 
         except Exception as e:
-            print("Has error when getting patient information: {}".format(e))
+            LogMesssage('\tHas error at module: Get_Exam_Room in Connect_DB. {error}'.format(error=e), opt=2)
             return -1, None
 
     def test(self):
@@ -351,6 +404,7 @@ class DB:
 
 
 # db = DB()
+
 # ret, list_img = db.Get_Patient_Img(9)
 # for i in list_img:
 #     img = i.split('/')

@@ -1,5 +1,4 @@
 from parameters import *
-import os, glob
 import cv2
 import numpy as np
 
@@ -34,8 +33,6 @@ def Create_New_Patient(user_information, request_data):
             msg = "Fail to insert new patient into database"
             print("\t{}".format(msg))
             return {'return': -1, 'msg': msg}
-        
-        flg_insert_patient_info = True
 
         for img in list_imgs:
             image = np.fromstring(img, np.uint8)
@@ -55,38 +52,36 @@ def Create_New_Patient(user_information, request_data):
                 if ret_insert_patient_img == -1:
                     message = "Has error when insert image of patient"
                     print("\t{}".format(message))
-                    return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
+                    return Error_Functions_Create_New_Device(message, patient_ID)
             elif ret == -1:
                 message = "Has error when process patient face, cannot find location of face in image"
                 print("\t{}".format(message))
-                return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
+                return Error_Functions_Create_New_Device(message, patient_ID)
             elif ret == -2:
                 message = "Has error when process patient face, have many faces in image"
                 print("\t{}".format(message))
-                return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
+                return Error_Functions_Create_New_Device(message, patient_ID)
             else:
                 message = "Has error when receive images for inserting new patient"
                 print("\t{}".format(message))
-                return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
-
-            flg_insert_patient_img = True
+                return Error_Functions_Create_New_Device(message, patient_ID)
 
         ret_add_new_patient = para.identifying_user.Add_New_Patient(patient_ID, list_embedded_face)
+        # ret_add_new_patient = -1
         if ret_add_new_patient == -1:
             msg = "Has error when insert new patient"
-            return {'return': -1, 'msg': msg}
+            print("\t{}".format(msg))
+            return Error_Functions_Create_New_Device(msg, patient_ID)
         
         return {'return': 0, 'msg': ""}
     except Exception as e:
         print("\tHas error at def: Create_New_Patient in module: create_new_patient. {}".format(e))
         message = "Has error when receive images for inserting new patient"
-        return Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img)
+        return Error_Functions_Create_New_Device(message, patient_ID)
 
 
-def Error_Functions_Create_New_Device(message, patient_ID, flg_insert_patient_info, flg_insert_patient_img):
-    if flg_insert_patient_img:
-        para.db.Delete_Patien_Img(patient_ID)
-    if flg_insert_patient_info:
-        para.db.Delete_Patient(patient_ID)
+def Error_Functions_Create_New_Device(message, patient_ID):
+    print('Delete patient\'s information')
+    para.db.Delete_Patient(patient_ID)
     return {'return': -1, 'msg': message}
     
