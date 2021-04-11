@@ -3,11 +3,22 @@ from parameters import *
 from common_functions.utils import LogMesssage
 
 def Activate_Temp_Patient(string_properties):
+    return 0
     user_id = int(string_properties['user_id'])
+    
+    # First check whether this patient is activate or not
+    exist_patient = para.identifying_user.CheckExistPatient(user_id)
+    if exist_patient == 0:
+        LogMesssage('\tRequest to activate exist patient')
+        return -1
     
     ret, list_images = para.db.Get_Patient_Img(user_id)
     if ret == -1:
         LogMesssage('\tFail to activate patient with id: {id}'.format(id=user_id), opt=2)
+        return -1
+    
+    # Check whether this user has image in db or not
+    if len(list_images) != 5:
         return -1
 
     list_encoded_img = []

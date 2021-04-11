@@ -96,6 +96,12 @@ def Get_Exam_Room():
     server.Get_Exam_Room()
     while (server.has_response == False):
         continue
+
+def Get_Sympton(user_voice):
+    server.Get_Sympton(user_voice)
+    while (server.has_response == False):
+        continue
+
 def activate_temp_patient(user_id):
     server.Activate_Temp_Patient(user_id)
 
@@ -128,7 +134,7 @@ def Submit_Examiantion(user_id = None):
         'room_code': '102', 
         'patient_ID': '-1', 
         
-        'blood_pressure': '120', 
+        'bmi': '120', 
         'pulse': '98', 
         'thermal': '38', 
         'spo2': '90',
@@ -271,11 +277,12 @@ if __name__ == '__main__':
     # test_validate(3)
     # receive_img()
     # test_create_temp_user(9, temp_patient)
-    # activate_temp_patient(76)
-    # test_validate(74)
+    # activate_temp_patient(82)
+    # test_validate(7)
     # Get_Exam_Room()
-    Submit_Examiantion(8)
-    # create_new_device(1, 'A1', 'XB00000002')
+    # Get_Sympton("Xin chào")
+    # Submit_Examiantion(8)
+    create_new_device(1, 'A1', 'D21-000003')
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')
 

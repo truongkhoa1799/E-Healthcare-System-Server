@@ -224,6 +224,14 @@ class IdentifyUser:
             LogMesssage('\tSuccessfully reverse to previous data', opt=2)
             return -1
     
+    def CheckExistPatient(self, patient_ID):
+        # 0: exist
+        # -1: none
+        if patient_ID in self.__list_patient_ID:
+            return 0
+        else:
+            return -1
+    
     def Init_Data(self):
         self.__list_patient_ID = []
         self.__list_embedded_face = []
@@ -251,5 +259,7 @@ class IdentifyUser:
 
 
 # test = IdentifyUser()
-# test.Delete_User(74)
+# test.Delete_User(70)
+
+
 # test.Init_Data()

@@ -40,10 +40,11 @@ def Get_Connection_Device(device_ID):
         print ( "Unexpected error {0} while retreiving device connection".format(ex) )
         return -1, 0
 
-def Get_Twin_Information(device_ID):
-    try:
-        twin = para.iothub_registry_manager.get_twin(device_ID)
-        return(twin.tags['location'])
-    except Exception as ex:
-        print ( "Unexpected error {0} while retreiving device connection".format(ex) )
-        return -1, 0
+# CHANGE 6-4 do not need to use
+# def Get_Twin_Information(device_ID):
+#     try:
+#         twin = para.iothub_registry_manager.get_twin(device_ID)
+#         return(twin.tags['location'])
+#     except Exception as ex:
+#         print ( "Unexpected error {0} while retreiving device connection".format(ex) )
+#         return -1, 0

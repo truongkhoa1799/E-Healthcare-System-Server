@@ -48,7 +48,8 @@ class Server:
                 or method_request.name == "Create_New_Device" \
                 or method_request.name == 'Get_Examination_Room' \
                 or method_request.name == 'Submit_Examination' \
-                or method_request.name == 'Create_Temp_Patient':
+                or method_request.name == 'Create_Temp_Patient' \
+                or method_request.name == 'Get_Sympton':
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -157,12 +158,26 @@ class Server:
         except Exception as e:
             print(e)
     
+    def Get_Sympton(self, user_voice):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            data = EventData(user_voice)
+            data.properties = {
+                'type_request':"7", 
+                'device_ID': str(self.__device_ID),
+                "request_id": "hsds"
+            }
+            event_data_batch.add(data)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+    
     def Activate_Temp_Patient(self, user_id):
         try:
             event_data_batch = self.__producer.create_batch()
             try:
                 msg = {
-                    'type_request':"7", 
+                    'type_request':"6", 
                     'device_ID': str(self.__device_ID),
                     'user_id': str(user_id),
                     "request_id": "hsds"

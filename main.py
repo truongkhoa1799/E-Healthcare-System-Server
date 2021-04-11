@@ -1,4 +1,4 @@
-import time
+import time, json, requests
 import asyncio
 
 from azure.iot.hub.models import CloudToDeviceMethod
@@ -83,6 +83,12 @@ async def on_event(partition_context, event):
         elif type_request == "6":
             res_msg = Activate_Temp_Patient(string_properties)
             return
+        
+        elif type_request == '7':
+            user_voice = event.body_as_str(encoding='UTF-8')
+            data = '{"text":"' + user_voice + '"}'
+            response = json.loads(requests.post('http://localhost:5005/model/parse', data=data.encode('utf-8')).text)
+            res_msg = response
 
         # attach the request id and send back to client
         res_msg['request_id'] = request_id
@@ -149,8 +155,8 @@ def Init_Server():
     # exit(-1)
 
     # delete patient all information
-    # para.identifying_user.Delete_User(77)
-    # para.db.Delete_Patient(77)
+    # para.identifying_user.Delete_User(76)
+    # para.db.Delete_Patient(76)
     # exit(-1)
 
 if __name__ == '__main__':

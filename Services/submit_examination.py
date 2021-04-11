@@ -16,11 +16,11 @@ def Submit_Examination(properties, list_embedded_face):
         patient_ID = int(properties['patient_ID'])
 
         # Sensor Information
-        blood_pressure = round(float(properties['blood_pressure']), 0)
+        bmi = round(float(properties['bmi']), 1)
         pulse = round(float(properties['pulse']), 0)
-        spo2 = round(float(properties['spo2']), 1)
+        spo2 = round(float(properties['spo2']), 0)
         thermal = round(float(properties['thermal']), 1)
-        height = round(float(properties['height']), 1)
+        height = round(float(properties['height']), 2)
         weight = round(float(properties['weight']), 1)
 
         # Check whether this user is new user or not
@@ -48,7 +48,7 @@ def Submit_Examination(properties, list_embedded_face):
         # First insert into sensor information
         # If success: go next state
         # Else: remove from database
-        ret, sensor_id = para.db.Insert_Sensor_Information(blood_pressure, pulse, spo2, thermal, height, weight)
+        ret, sensor_id = para.db.Insert_Sensor_Information(bmi, pulse, spo2, thermal, height, weight)
         # simulate error when insert senson information
         # ret = -1
         if ret == -1:

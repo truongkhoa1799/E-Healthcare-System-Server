@@ -33,7 +33,7 @@ RESNET_MODEL = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/d
 CNN_FACE_DETECTOR = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/mmod_human_face_detector.dat'
 
 MODEL_SHAPE_PREDICTOR = '68'
-MODEL_FACE_DETECTOR = 'cnn'
+MODEL_FACE_DETECTOR = 'hog'
 # MODEL_SHAPE_PREDICTOR = '5'
 # MODEL_FACE_DETECTOR = 'hog'
 
@@ -47,8 +47,8 @@ IMAGE_SIZE = 150
 BASE_BRIGHTNESS = 180
 
 # change to reduce noise and with confident interval
-# THRESHOLD_FACE_REC = 0.42
-THRESHOLD_FACE_REC = 0.45
+THRESHOLD_FACE_REC = 0.40
+# THRESHOLD_FACE_REC = 0.45
 # THRESHOLD_FACE_REC = 1
 
 NUM_JITTERS = 1
@@ -87,7 +87,8 @@ class Parameters:
             "3": "Create_New_Device", 
             "4": "Get_Examination_Room",
             "5": "Submit_Examination",
-            "6": "Activate_Temp_Patient"
+            "6": "Activate_Temp_Patient",
+            "7": "Get_Sympton"
         }
 
 
