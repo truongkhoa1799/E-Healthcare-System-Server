@@ -262,8 +262,6 @@ if __name__ == '__main__':
         'e_meail' : 'temp123@gmail.com',
         'flag_valid' : '0'}
 
-
-
     # test_create_new_patient(2, khuong)
     # test_create_new_patient(3, cuccungchan)
     # test_create_new_patient(4, hao)
@@ -277,12 +275,12 @@ if __name__ == '__main__':
     # test_validate(3)
     # receive_img()
     # test_create_temp_user(9, temp_patient)
-    # activate_temp_patient(82)
+    # activate_temp_patient(83)
     # test_validate(7)
     # Get_Exam_Room()
-    # Get_Sympton("Xin chào")
+    Get_Sympton('Xin chào')
     # Submit_Examiantion(8)
-    create_new_device(1, 'A1', 'D21-000003')
+    # create_new_device(1, 'A1', 'D21-000003')
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')
 

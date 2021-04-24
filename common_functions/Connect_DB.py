@@ -389,17 +389,17 @@ class DB:
     def Get_Exam_Room(self, hospital_ID):
         # Get Name, birthday, Phone, Address
         ret = []
-        sql_st = '''SELECT D.Dep_id, D.Dep_name, ER.Building_Code, ER.Exam_Room_Code
+        sql_st = '''SELECT D.Dep_id, D.Dep_name, ER.Building_Code, ER.Exam_Room_Code, ER.Number_Patients
                     FROM hospital.EXAM_ROOM as ER
                     JOIN hospital.DEPARTMENT as D
-                        ON D.Hospital_ID = {}
+                        ON D.Hospital_ID = {h_id}
                         AND D.Dep_id = ER.Dep_id
-                    WHERE ER.Hospital_ID = {}'''.format(hospital_ID, hospital_ID)
+                    WHERE ER.Hospital_ID = {h_id}'''.format(h_id=hospital_ID)
         try:
             self.cursor.execute(sql_st)
             row = self.cursor.fetchone()
             while row:
-                ret.append({'dep_ID': row[0], 'dep_name': row[1], 'building_code': row[2], 'room_code': row[3]})
+                ret.append({'dep_ID': row[0], 'dep_name': row[1], 'building_code': row[2], 'room_code': row[3], 'num_patients': row[4]})
                 row = self.cursor.fetchone()
             return 0, ret
 

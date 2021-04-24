@@ -185,6 +185,10 @@ class IdentifyUser:
             
             user_ID = self.__Get_User_ID(list_encoded_img)
 
+            # wearing mask
+            if user_ID == -2:
+                return {'return': -2}
+
             if user_ID != -1:
                 ret, name, birthday, phone, address = para.db.Get_Patient_Information(user_ID)
                 # print(ret)
@@ -259,7 +263,4 @@ class IdentifyUser:
 
 
 # test = IdentifyUser()
-# test.Delete_User(70)
-
-
-# test.Init_Data()
+# test.Delete_User(83)

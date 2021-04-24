@@ -18,6 +18,7 @@ from services.create_new_patient import *
 from services.submit_examination import *
 from services.get_examination_room import *
 from services.activate_temp_patient import *
+from services.extract_sympton.get_sympton import Get_Sympton
 
 ######################################################################################
 # Response_Devices                                                                   #
@@ -86,9 +87,7 @@ async def on_event(partition_context, event):
         
         elif type_request == '7':
             user_voice = event.body_as_str(encoding='UTF-8')
-            data = '{"text":"' + user_voice + '"}'
-            response = json.loads(requests.post('http://localhost:5005/model/parse', data=data.encode('utf-8')).text)
-            res_msg = response
+            res_msg = Get_Sympton(user_voice)
 
         # attach the request id and send back to client
         res_msg['request_id'] = request_id
@@ -108,9 +107,11 @@ async def on_event(partition_context, event):
             msg = "Has error when submit examination room"
         elif type_request == "6":
             return
+        elif type_request == "7":
+            msg = "Has error when submit examination room"
 
-        res_msg['request_id'] = request_id
-        Response_Devices(device_ID, {'return': -1, 'msg': msg}, para.request_msg[type_request])
+        res_msg = {'return': -1, 'msg': msg, 'request_id': request_id}
+        Response_Devices(device_ID, res_msg, para.request_msg[type_request])
         print()
 
 async def Receive_Message_From_Devices():
@@ -162,6 +163,10 @@ def Init_Server():
 if __name__ == '__main__':
     # Remove_Device(1)
     try:
+        
+        # # print(response)
+        # exit(0)
+
         Init_Server()
         # Run the main method.
         loop = asyncio.get_event_loop()

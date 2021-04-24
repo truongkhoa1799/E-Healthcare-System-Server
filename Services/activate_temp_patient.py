@@ -3,7 +3,7 @@ from parameters import *
 from common_functions.utils import LogMesssage
 
 def Activate_Temp_Patient(string_properties):
-    return 0
+    # return 0
     user_id = int(string_properties['user_id'])
     
     # First check whether this patient is activate or not
