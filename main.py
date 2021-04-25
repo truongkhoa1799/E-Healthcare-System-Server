@@ -16,8 +16,10 @@ from common_functions.face_recognition import FaceRecognition
 from services.create_new_device import *
 from services.create_new_patient import *
 from services.submit_examination import *
-from services.get_examination_room import *
+# from services.get_examination_room import *
+from services.send_list_exam_rooms import *
 from services.activate_temp_patient import *
+from services.get_init_parameters import *
 from services.extract_sympton.get_sympton import Get_Sympton
 
 ######################################################################################
@@ -74,8 +76,8 @@ async def on_event(partition_context, event):
         elif type_request == '3':
             res_msg = Create_New_Device(string_properties)
 
-        elif type_request == '4':
-            res_msg = Get_Examination_Room(device_ID)
+        # elif type_request == '4':
+        #     res_msg = Get_Examination_Room(device_ID)
             
         elif type_request == '5':
             data = event.body_as_str(encoding='UTF-8')
@@ -89,6 +91,13 @@ async def on_event(partition_context, event):
             user_voice = event.body_as_str(encoding='UTF-8')
             res_msg = Get_Sympton(user_voice)
 
+        elif type_request == '8':
+            res_msg = getInitParameters(device_ID)
+        
+        elif type_request == '9':
+            hospital_ID = int(string_properties['hospital_ID'])
+            res_msg = sendListExamRoomsToDevices(hospital_ID, para.request_msg[type_request])
+
         # attach the request id and send back to client
         res_msg['request_id'] = request_id
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
@@ -97,18 +106,30 @@ async def on_event(partition_context, event):
         LogMesssage('Unexpected error {error} while receiving message'.format(error=ex), opt=2)
         if type_request == "0":
             msg = "Has error when validate user"
+
         elif type_request == "2":
             msg = "Has error when create new patient"
+
         elif type_request == "3":
             msg = "Has error when create new device"
-        elif type_request == "4":
-            msg = "Has error when get examination room"
+
+        # elif type_request == "4":
+        #     msg = "Has error when get examination room"
+
         elif type_request == "5":
             msg = "Has error when submit examination room"
+            
         elif type_request == "6":
             return
+
         elif type_request == "7":
             msg = "Has error when submit examination room"
+
+        elif type_request == "8":
+            msg = "Has error when getting init parameters"
+        
+        elif type_request == "9":
+            msg = "Has error when updating list exam rooms to devices"
 
         res_msg = {'return': -1, 'msg': msg, 'request_id': request_id}
         Response_Devices(device_ID, res_msg, para.request_msg[type_request])
@@ -147,6 +168,8 @@ def Init_Server():
     para.checkpoint_store = BlobCheckpointStore.from_connection_string(STORAGE_CONNECTION, BLOB_RECEIVE_EVENT)
     para.image_user_container = ContainerClient.from_connection_string(STORAGE_CONNECTION, container_name=BLOB_RECEIVE_IMG)
     print()
+
+    # sendListExamRoomsToDevices([1,2], "123", para.request_msg["9"])
     
     # Get and add device information
     # location = Get_Twin_Information('test_device')

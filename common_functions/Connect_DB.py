@@ -182,6 +182,24 @@ class DB:
             return -1
 
         return ret
+    
+    def getListDeviceID(self, hospital_ID):
+        list_device_id = []
+        sql_st = '''SELECT Device_ID
+                    FROM hospital.DEVICE
+                    WHERE Hospital_ID = {};'''.format(hospital_ID)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            while row:
+                list_device_id.append(row[0])
+                row = self.cursor.fetchone()
+            return 0, list_device_id
+
+        except Exception as e:
+            LogMesssage('\tHas error at module: getListDeviceID in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, []
+
 
     ####################################################################
     # GET                                                              #
@@ -421,6 +439,7 @@ class DB:
 
 
 # db = DB()
+# print(db.getListDeviceID(1))
 # print(db.GetHospitalIdOfDevice('1'))
 # db.test()
 

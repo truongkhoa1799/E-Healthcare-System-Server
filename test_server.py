@@ -49,7 +49,8 @@ class Server:
                 or method_request.name == 'Get_Examination_Room' \
                 or method_request.name == 'Submit_Examination' \
                 or method_request.name == 'Create_Temp_Patient' \
-                or method_request.name == 'Get_Sympton':
+                or method_request.name == 'Get_Sympton' \
+                or method_request.name == 'Update_List_Exam_Rooms':
                 response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
                 response_status = 200
             else:
@@ -184,6 +185,27 @@ class Server:
                 }
                 print(msg)
                 data = EventData("Submit Examiantion room")
+                data.properties = msg
+
+                event_data_batch.add(data)
+            except Exception as e:
+                print(e)
+            self.__producer.send_batch(event_data_batch)
+        except Exception as e:
+            print(e)
+    
+    def sendUpdateListExamRooms(self, hospital_ID):
+        try:
+            event_data_batch = self.__producer.create_batch()
+            try:
+                msg = {
+                    'type_request':"9", 
+                    'device_ID': str(self.__device_ID),
+                    'hospital_ID': str(hospital_ID),
+                    "request_id": "hsds"
+                }
+                print(msg)
+                data = EventData("")
                 data.properties = msg
 
                 event_data_batch.add(data)

@@ -88,7 +88,9 @@ class Parameters:
             "4": "Get_Examination_Room",
             "5": "Submit_Examination",
             "6": "Activate_Temp_Patient",
-            "7": "Get_Sympton"
+            "7": "Get_Sympton",
+            "8": "Get_Init_Parameters",
+            "9": "Update_List_Exam_Rooms"
         }
 
 

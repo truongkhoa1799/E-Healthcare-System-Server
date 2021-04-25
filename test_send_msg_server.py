@@ -105,6 +105,10 @@ def Get_Sympton(user_voice):
 def activate_temp_patient(user_id):
     server.Activate_Temp_Patient(user_id)
 
+def sendListExamRooms(hospital_ID):
+    server.sendUpdateListExamRooms(hospital_ID)
+    while (server.has_response == False):
+        continue
 
 def Submit_Examiantion(user_id = None):
     print(user_id)
@@ -278,11 +282,10 @@ if __name__ == '__main__':
     # activate_temp_patient(83)
     # test_validate(7)
     # Get_Exam_Room()
-    Get_Sympton('Xin chào')
+    # Get_Sympton('Xin chào')
     # Submit_Examiantion(8)
     # create_new_device(1, 'A1', 'D21-000003')
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')
 
-
-
+    sendListExamRooms(1)
