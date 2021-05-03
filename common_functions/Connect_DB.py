@@ -12,10 +12,10 @@ class RepeatTimer(Timer):
 
 class DB:
     def __init__(self):
-        self.__server = "hospitaldb.database.windows.net"
+        self.__server = "ehealthcarethesis.database.windows.net"
         self.__username = "PYTHON_SERVER"
         self.__password = "Database_Hospital@123"
-        self.__database = "HospitalDB"
+        self.__database = "Hospital_DB"
 
         # self.conn = pymssql.connect(server, user, password, database)
         self.connect = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+ self.__password)

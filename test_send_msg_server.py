@@ -288,4 +288,4 @@ if __name__ == '__main__':
     # create_new_device(1, 'B1', 'XB00000003')
     # create_new_device(1, 'B1', 'XB00000004')
 
-    sendListExamRooms(1)
+    # sendListExamRooms(1)
