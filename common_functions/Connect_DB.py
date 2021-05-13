@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
+sys.path.append('/Users/khoatr1799/GitHub/E-Healthcare-System-Server')
 
 import pyodbc
 from common_functions.utils import LogMesssage
@@ -94,13 +94,14 @@ class DB:
     ####################################################################
     # GET                                                              #
     ####################################################################
-    def Get_Patient_Information(self, user_ID):
+    def Get_Patient_Information(self, patient_ID):
         # Get Name, birthday, Phone, Address
         sql_st = '''
             SELECT CONCAT(Last_Name, ' ', First_Name) AS Name, Date_Of_Birth, Phone_Number, Address
             FROM hospital.PATIENT
-            WHERE Patient_ID = {};
-        '''.format(user_ID)
+            WHERE Patient_ID = {}
+            AND flag_valid = 1;
+        '''.format(patient_ID)
         try:
             self.cursor.execute(sql_st)
             row = self.cursor.fetchone()
@@ -124,6 +125,20 @@ class DB:
 
         except Exception as e:
             LogMesssage('\tHas error at module: Get_Patient_Img in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, None
+    
+    def getPatientIDWithSSN(self, ssn):
+        sql_st = '''SELECT Patient_ID
+                    FROM hospital.PATIENT
+                    WHERE SSN = '{}'
+                    AND flag_valid = 1;'''.format(ssn)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            return 0, row[0]
+
+        except Exception as e:
+            LogMesssage('\tHas error at module: getPatientIDWithSSN in Connect_DB. {error}'.format(error=e), opt=2)
             return -1, None
     
     ####################################################################
@@ -199,6 +214,22 @@ class DB:
         except Exception as e:
             LogMesssage('\tHas error at module: getListDeviceID in Connect_DB. {error}'.format(error=e), opt=2)
             return -1, []
+    
+    def getStatusDevice(self, device_ID):
+        ret = -1
+        sql_st = '''SELECT Valid_flg
+                    FROM hospital.DEVICE
+                    WHERE Device_ID = {};'''.format(device_ID)
+        
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            return 0, row[0]
+        
+        except Exception as e:
+            LogMesssage('\tHas error at module: checkStatusDevice in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, ret
+
 
 
     ####################################################################
@@ -439,6 +470,8 @@ class DB:
 
 
 # db = DB()
+# print(db.getPatientIDWithSSN('025874415'))
+# print(db.getStatusDevice(0))
 # print(db.getListDeviceID(1))
 # print(db.GetHospitalIdOfDevice('1'))
 # db.test()

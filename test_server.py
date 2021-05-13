@@ -65,13 +65,15 @@ class Server:
             # print(ret)
             self.has_response = True
     
-    def Validate_User(self, list_encoded_img):
+    def Validate_User(self, list_encoded_img, ssn):
         try:
-            event_data_batch = self.__producer.create_batch()
+            event_data_batch = self.__producer.create_batch(
+                partition_id='0'
+            )
             try:
                 data = EventData(list_encoded_img)
                 # data = EventData("Hello")
-                data.properties = {'type_request':"0", 'device_ID': str(self.__device_ID), "request_id": "hsds"}
+                data.properties = {'type_request':"0", 'device_ID': str(self.__device_ID), "request_id": "hsds", "ssn": ssn}
                 event_data_batch.add(data)
             except Exception as e:
                 print(e)

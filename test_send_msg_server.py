@@ -1,8 +1,9 @@
 from parameters import *
+from common_functions.Connect_DB import DB
 from common_functions.identifying_user import IdentifyUser
 from common_functions.face_recognition import FaceRecognition
 import cv2
-import os, re, uuid
+import os, re, uuid, time
 import numpy as np
 from test_server import Server
 from azure.storage.blob import BlobServiceClient, ContainerClient, __version__
@@ -10,7 +11,12 @@ from azure.storage.blob import BlobServiceClient, ContainerClient, __version__
 from azure.iot.device import IoTHubDeviceClient
 from azure.core.exceptions import AzureError
 
+para.db = DB()
 server = Server()
+para.identifying_user = IdentifyUser()
+para.face_recognition = FaceRecognition()
+list_wrong_distance = []
+
 list_name = []
 def __image_files_in_folder(folder):
     return [os.path.join(folder, f) for f in os.listdir(folder) if re.match(r'.*\.(jpg|jpeg|png)', f, flags=re.I)]
@@ -23,11 +29,8 @@ def Compose_String(encoded_img):
     
     return ret_string
 
-def test_validate(user_id):
-    para.identifying_user = IdentifyUser()
-    para.face_recognition = FaceRecognition()
+def test_validate(user_id, ssn='-1'):
     list_encoded_img = ""
-
     for img in __image_files_in_folder(ORIGINAL_DATA + '/test/' + str(user_id)):
     # for img in __image_files_in_folder(UNKNOWN_DATA):
         loaded_img = cv2.imread(img)
@@ -41,7 +44,8 @@ def test_validate(user_id):
         encoded_img_string = Compose_String(embedded_img)
         list_encoded_img += encoded_img_string + ' '
 
-    server.Validate_User(list_encoded_img)
+    # testValidateWithSSN(list_encoded_img, ssn)
+    server.Validate_User(list_encoded_img, ssn)
     while (server.has_response == False):
         continue
 
@@ -149,6 +153,54 @@ def Submit_Examiantion(user_id = None):
     server.Submit_Examination(msg, list_image_encoeded)
     while (server.has_response == False):
         continue
+
+def testValidateWithSSN(list_embedded_imgs, ssn):
+    list_embedded_imgs_validation_decoded = []
+    post_list_encoded_img = list_embedded_imgs.split(' ')
+    for i in post_list_encoded_img:
+        if i != '':
+            post_encoded_img = i.split('/')
+            encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
+            encoded_img = np.array(encoded_img).reshape(1,-1)
+            list_embedded_imgs_validation_decoded.append(encoded_img)
+    
+    ret, patient_ID = para.db.getPatientIDWithSSN(ssn)
+    # print(patient_ID)
+    if ret == -1:
+        return {'return': -3}
+    
+    ret, list_embedded_imgs = para.db.Get_Patient_Img(patient_ID)
+    # print(list_embedded_imgs)
+    if ret != 0:
+        return -3
+
+    ##########################################################################
+    # decoding images stored on db                                           #
+    ##########################################################################
+    list_embedded_imgs_decoded = []
+    for i in list_embedded_imgs:
+        image = i.split('/')
+        encoded_img = [np.float64(j) for j in image if j != '']
+        encoded_img = np.array(encoded_img)
+        list_embedded_imgs_decoded.append(encoded_img)
+
+    ##########################################################################
+    # Check whether this user is active or not. if not active                #
+    ##########################################################################
+    if para.identifying_user.CheckExistPatient(patient_ID) != 0:
+        print('user is not active')
+        # para.lock_train_patient.acquire()
+        # ret_add_new_patient = para.identifying_user.Add_New_Patient(patient_ID, list_embedded_imgs_decoded)
+        # para.lock_train_patient.release()
+        # if ret_add_new_patient == -1:
+        #     return -3
+    
+    list_embedded_imgs_decoded = np.array(list_embedded_imgs_decoded)
+
+    for embedded_img in list_embedded_imgs_validation_decoded:
+        img = np.array(5*[embedded_img[0]])
+        ret = np.linalg.norm(list_embedded_imgs_decoded-img, axis=1)
+        list_wrong_distance.append(ret)
 
 if __name__ == '__main__':
     server.has_response = False
@@ -274,12 +326,29 @@ if __name__ == '__main__':
     # test_create_new_patient(7, jenny)
     # test_create_new_patient(1, khoa)
     # test_create_new_patient(8, kiet)
+    test_validate(1, "025874415")
     # test_validate(1)
+    
+    # for i in range(9):
+    #     try:
+    #         if i != 1:
+    #             test_validate(i)
+    #     except:
+    #         pass
+
+    # list_wrong_distance = np.array(list_wrong_distance)
+    # list_wrong_distance = np.reshape(list_wrong_distance, (1, -1))
+    # print(list_wrong_distance)
+    # print(np.mean(list_wrong_distance))
+    # print(np.std(list_wrong_distance))
+    # print(np.max(list_wrong_distance))
+    # print(np.min(list_wrong_distance))
+
     # test_validate(8)
     # test_validate(3)
     # receive_img()
     # test_create_temp_user(9, temp_patient)
-    # activate_temp_patient(83)
+    # activate_temp_patient(10)
     # test_validate(7)
     # Get_Exam_Room()
     # Get_Sympton('Xin chào')

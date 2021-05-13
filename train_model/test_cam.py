@@ -1,12 +1,12 @@
 import time
 import sys
-sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server/')
+sys.path.append('/Users/khoatr1799/GitHub/E-Healthcare-System-Server/')
 from parameters import *
 from common_functions.identifying_user import IdentifyUser
 from common_functions.face_recognition import FaceRecognition
 import cv2
 
-IMG_PATH = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/Manipulate_Data/Original_Face/train/1/IMG_3415.jpg'
+IMG_PATH = '/Users/khoatr1799/GitHub/E-Healthcare-System-Server/Manipulate_Data/Original_Face/train/1/IMG_3415.jpg'
 
 para.face_recognition = FaceRecognition()
 

@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 import cv2
 import sys
-sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
+sys.path.append('/Users/khoatr1799/GitHub/E-Healthcare-System-Server')
 
 # import face_recognition
 import dlib
@@ -29,7 +29,7 @@ class FaceRecognition:
         self.__face_encoder = dlib.face_recognition_model_v1(RESNET_MODEL)
         
         test_img = None
-        with open ('/Users/khoa1799/GitHub/E-Healthcare-System-Server/model_engine/test_encoding_img', mode='rb') as f1:
+        with open ('/Users/khoatr1799/GitHub/E-Healthcare-System-Server/model_engine/test_encoding_img', mode='rb') as f1:
             test_img = pickle.load(f1)
 
         test_encoded = self.__face_encodings(test_img, [(1, 149, 1, 149)])

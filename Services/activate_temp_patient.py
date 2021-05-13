@@ -28,7 +28,9 @@ def Activate_Temp_Patient(string_properties):
         encoded_img = np.array(encoded_img)
         list_encoded_img.append(encoded_img)
 
+    para.lock_train_patient.acquire()
     ret_add_new_patient = para.identifying_user.Add_New_Patient(user_id, list_encoded_img)
+    para.lock_train_patient.release()
     if ret_add_new_patient == -1:
         LogMesssage('\tFail to activate patient with id: {id}'.format(id=user_id), opt=2)
         return -1

@@ -6,7 +6,7 @@ import cv2
 import pickle
 import numpy as np
 from sklearn import neighbors
-sys.path.append('/Users/khoa1799/GitHub/E-Healthcare-System-Server')
+sys.path.append('/Users/khoatr1799/GitHub/E-Healthcare-System-Server')
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 

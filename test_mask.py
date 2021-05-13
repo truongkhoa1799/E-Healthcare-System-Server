@@ -8,8 +8,8 @@ from common_functions.face_recognition import FaceRecognition
 def __image_files_in_folder(folder):
     return [os.path.join(folder, f) for f in os.listdir(folder) if re.match(r'.*\.(jpg|jpeg|png)', f, flags=re.I)]
 
-image_path = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/data_mask'
-cut_face_path = '/Users/khoa1799/GitHub/E-Healthcare-System-Server/cute_face'
+image_path = '/Users/khoatr1799/GitHub/E-Healthcare-System-Server/data_mask'
+cut_face_path = '/Users/khoatr1799/GitHub/E-Healthcare-System-Server/cute_face'
 
 para.identifying_user = IdentifyUser()
 para.face_recognition = FaceRecognition()

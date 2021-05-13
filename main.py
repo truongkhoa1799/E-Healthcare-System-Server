@@ -14,7 +14,7 @@ from common_functions.identifying_user import IdentifyUser
 from common_functions.face_recognition import FaceRecognition
 
 from services.create_new_device import *
-from services.create_new_patient import *
+# from services.create_new_patient import *
 from services.submit_examination import *
 # from services.get_examination_room import *
 from services.send_list_exam_rooms import *
@@ -47,7 +47,6 @@ async def on_event(partition_context, event):
     device_ID = None
     try:
         await partition_context.update_checkpoint(event)
-        # partition_context.update_checkpoint(event)
 
         bytes_properties = dict(event.properties)
         # NOTE: EVERY VALUES IN JSON HAVE TO BE TRANSFERED TO STRING
@@ -66,12 +65,13 @@ async def on_event(partition_context, event):
         LogMesssage('Request {res_id}, {res_name}, device: {device_id}'.format(res_id=request_id, res_name=para.request_msg[type_request], device_id=device_ID))
 
         if type_request == '0':
-            data = event.body_as_str(encoding='UTF-8')
-            res_msg = para.identifying_user.Identifying_User(data)
+            embedded_face = event.body_as_str(encoding='UTF-8')
+            ssn = str(string_properties['ssn'])
+            res_msg = para.identifying_user.Identifying_User(embedded_face, ssn)
 
-        elif type_request == '2':
-            data = event.body_as_str(encoding='UTF-8')
-            res_msg = Create_New_Patient(string_properties, data)
+        # elif type_request == '2':
+        #     data = event.body_as_str(encoding='UTF-8')
+        #     res_msg = Create_New_Patient(string_properties, data)
 
         elif type_request == '3':
             res_msg = Create_New_Device(string_properties)
@@ -107,8 +107,8 @@ async def on_event(partition_context, event):
         if type_request == "0":
             msg = "Has error when validate user"
 
-        elif type_request == "2":
-            msg = "Has error when create new patient"
+        # elif type_request == "2":
+        #     msg = "Has error when create new patient"
 
         elif type_request == "3":
             msg = "Has error when create new device"
@@ -147,7 +147,11 @@ async def Receive_Message_From_Devices():
     )
     async with client:
         # Call the receive method. Read from the beginning of the partition (starting_position: "-1")
-        await client.receive(on_event=on_event,  starting_position="-1")
+        await client.receive(
+            on_event=on_event,
+            partition_id = '0',
+            starting_position="-1"
+        )
 
 def Init_Server():
     # Init parameters
@@ -166,7 +170,7 @@ def Init_Server():
     LogMesssage('Start Connecting Azure services', opt=0)
     para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
     para.checkpoint_store = BlobCheckpointStore.from_connection_string(STORAGE_CONNECTION, BLOB_RECEIVE_EVENT)
-    para.image_user_container = ContainerClient.from_connection_string(STORAGE_CONNECTION, container_name=BLOB_RECEIVE_IMG)
+    # para.image_user_container = ContainerClient.from_connection_string(STORAGE_CONNECTION, container_name=BLOB_RECEIVE_IMG)
     print()
 
     # sendListExamRoomsToDevices([1,2], "123", para.request_msg["9"])
@@ -179,17 +183,13 @@ def Init_Server():
     # exit(-1)
 
     # delete patient all information
-    # para.identifying_user.Delete_User(76)
+    # para.identifying_user.Delete_Patient(76)
     # para.db.Delete_Patient(76)
     # exit(-1)
 
 if __name__ == '__main__':
     # Remove_Device(1)
     try:
-        
-        # # print(response)
-        # exit(0)
-
         Init_Server()
         # Run the main method.
         loop = asyncio.get_event_loop()

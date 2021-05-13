@@ -3,6 +3,7 @@ from services.create_temp_patient import *
 from common_functions.utils import LogMesssage
 
 def Submit_Examination(properties, list_embedded_face):
+    print(properties)
     stt = None
     sensor_id = None
     flag_insert_sensor = False
@@ -16,12 +17,12 @@ def Submit_Examination(properties, list_embedded_face):
         patient_ID = int(properties['patient_ID'])
 
         # Sensor Information
-        bmi = round(float(properties['bmi']), 1)
-        pulse = round(float(properties['pulse']), 0)
-        spo2 = round(float(properties['spo2']), 0)
-        thermal = round(float(properties['thermal']), 1)
-        height = round(float(properties['height']), 2)
-        weight = round(float(properties['weight']), 1)
+        bmi = float(properties['bmi'])
+        pulse = float(properties['pulse'])
+        spo2 = float(properties['spo2'])
+        thermal = float(properties['thermal'])
+        height = float(properties['height'])
+        weight = float(properties['weight'])
 
         # Check whether this user is new user or not
         if patient_ID == -1:
