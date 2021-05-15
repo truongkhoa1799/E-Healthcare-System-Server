@@ -11,13 +11,14 @@ def getInitParameters(device_ID):
         ret, status = para.db.getStatusDevice(device_ID)
         if ret == -1:
             return {'return': -2, 'parameters': error_msg_invalid}
+
         elif ret == 0 and status == 0:
+            LogMesssage('[getInitParameters]: The device is inactive.', opt=2)
             return {'return': -2, 'parameters': error_msg_invalid}
 
         ret, hospital_ID = para.db.GetHospitalIdOfDevice(device_ID)
         if ret == -1:
             return {'return': -1, 'parameters': error_msg_fail}
-        
 
         ret, list_exam_rooms = para.db.Get_Exam_Room(hospital_ID)
         if ret == -1:

@@ -4,21 +4,19 @@ from common_functions.utils import LogMesssage
 
 def Activate_Temp_Patient(string_properties):
     # return 0
-    user_id = int(string_properties['user_id'])
+    patient_ID = int(string_properties['patient_ID'])
     
     # First check whether this patient is activate or not
-    exist_patient = para.identifying_user.CheckExistPatient(user_id)
+    exist_patient = para.identifying_user.CheckExistPatient(patient_ID)
     if exist_patient == 0:
         LogMesssage('\tRequest to activate exist patient')
         return -1
+    else:
+        LogMesssage('\tRequest to activate new patient')
     
-    ret, list_images = para.db.Get_Patient_Img(user_id)
-    if ret == -1:
-        LogMesssage('\tFail to activate patient with id: {id}'.format(id=user_id), opt=2)
-        return -1
-    
-    # Check whether this user has image in db or not
-    if len(list_images) != 5:
+    ret, list_images = para.db.Get_Patient_Img(patient_ID)
+    if ret == -1 or len(list_images) != 5:
+        LogMesssage('\tFail to activate patient with id: {id}'.format(id=patient_ID), opt=2)
         return -1
 
     list_encoded_img = []
@@ -29,9 +27,11 @@ def Activate_Temp_Patient(string_properties):
         list_encoded_img.append(encoded_img)
 
     para.lock_train_patient.acquire()
-    ret_add_new_patient = para.identifying_user.Add_New_Patient(user_id, list_encoded_img)
+    ret_add_new_patient = para.identifying_user.Add_New_Patient(patient_ID, list_encoded_img)
     para.lock_train_patient.release()
     if ret_add_new_patient == -1:
-        LogMesssage('\tFail to activate patient with id: {id}'.format(id=user_id), opt=2)
+        LogMesssage('\tFail to activate patient with id: {id}'.format(id=patient_ID), opt=2)
         return -1
+    else:
+        LogMesssage('\tSuccessfully active patient with ID: {}'.format(patient_ID))
     return 0

@@ -326,8 +326,8 @@ if __name__ == '__main__':
     # test_create_new_patient(7, jenny)
     # test_create_new_patient(1, khoa)
     # test_create_new_patient(8, kiet)
-    test_validate(1, "025874415")
-    # test_validate(1)
+    # test_validate(1, "025874415")
+    test_validate(1)
     
     # for i in range(9):
     #     try:

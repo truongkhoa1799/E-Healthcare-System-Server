@@ -140,6 +140,26 @@ class DB:
         except Exception as e:
             LogMesssage('\tHas error at module: getPatientIDWithSSN in Connect_DB. {error}'.format(error=e), opt=2)
             return -1, None
+        
+    def getOldestImageIDPatient(self, patient_ID):
+        sql_st = '''
+                SELECT TOP 1 Img_Id
+                FROM hospital.PATIENT_IMG as PI
+                JOIN (
+                    SELECT MIN(Add_Date) as min_date
+                    FROM hospital.PATIENT_IMG
+                    WHERE Patient_ID = {}
+                ) AS M
+                ON PI.Add_Date = M.min_date;
+                '''.format(patient_ID)
+        try:
+            self.cursor.execute(sql_st)
+            row = self.cursor.fetchone()
+            return 0, row[0]
+
+        except Exception as e:
+            LogMesssage('\tHas error at module: getOldestImagePatient in Connect_DB. {error}'.format(error=e), opt=2)
+            return -1, None
     
     ####################################################################
     # DELETE                                                           #
@@ -470,13 +490,14 @@ class DB:
 
 
 # db = DB()
+# print(db.getOldestImageIDPatient(10))
 # print(db.getPatientIDWithSSN('025874415'))
 # print(db.getStatusDevice(0))
 # print(db.getListDeviceID(1))
 # print(db.GetHospitalIdOfDevice('1'))
 # db.test()
 
-# ret, list_img = db.Get_Patient_Img(9)
+# print(db.Get_Patient_Img(9))
 # for i in list_img:
 #     img = i.split('/')
 #     print(len(img))

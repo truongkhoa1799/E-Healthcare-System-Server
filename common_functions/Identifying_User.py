@@ -18,7 +18,7 @@ class IdentifyUser:
     #   None            None                        :   None                                      #
     ###############################################################################################
     def __init__(self):
-        self.__list_embedded_face = []
+        self.__list_embedded_face = [] # [(128, ), (128, ), ...]
         self.__list_patient_ID = []
         self.__knn_clf = None
         ret, self.__list_patient_ID, self.__list_embedded_face = self.__LoadData()
@@ -83,7 +83,7 @@ class IdentifyUser:
     ###############################################################################################
     # GetFaceID                                                                                   #                    
     # Input:                                                                                      #
-    #   ndarray         img                         :                                             #
+    #   ndarray         [(1, 128), (1, 128), ...]                                                 #
     # Output:                                                                                     #
     #   Str             UserID                      :                                             #
     ###############################################################################################
@@ -94,6 +94,7 @@ class IdentifyUser:
         return_patient_ID = None
         
         for embedded_img in list_encoded_img:
+            # print(embedded_img.shape)
             if len(self.__list_patient_ID) == 5:
                 closet_distances = self.__knn_clf.kneighbors(embedded_img, n_neighbors = 5)
             else:
@@ -162,6 +163,27 @@ class IdentifyUser:
         with open(KNN_MODEL_PATH, 'wb') as f:
             pickle.dump(self.__knn_clf, f)
 
+    # return 0: success, -1: fail
+    # list_embedded_imgs_stored_db_decoded: [(128, ), (128, )]
+    def __getImagePatientsOnDB(self, patient_ID):
+        ret, list_embedded_imgs_stored_db = para.db.Get_Patient_Img(patient_ID)
+        if ret != 0:
+            LogMesssage("[__getImagePatientsOnDB]: Fail to get patient's embedded with patient's SSN", opt=2)
+            return -1, None
+        else:
+            LogMesssage("[__getImagePatientsOnDB]: Successfully get patient's embedded with patient's SSN")
+
+        ######################################################################
+        # decoding images stored on db                                       #
+        ######################################################################
+        list_embedded_imgs_stored_db_decoded = []
+        for i in list_embedded_imgs_stored_db:
+            image = i.split('/')
+            encoded_img = [np.float64(j) for j in image if j != '']
+            encoded_img = np.array(encoded_img)
+            list_embedded_imgs_stored_db_decoded.append(encoded_img)
+
+        return 0, list_embedded_imgs_stored_db_decoded
 
 ##########################################################################################
 # PUBLIC METHOD                                                                          #
@@ -174,7 +196,6 @@ class IdentifyUser:
     #           -3: invalid ssn                                                          #
     ######################################################################################
     def Identifying_User(self, embedded_face, ssn):
-        res_msg = None
         try:
             list_embedded_imgs_validation_decoded = []
             post_list_encoded_img = embedded_face.split(' ')
@@ -183,7 +204,7 @@ class IdentifyUser:
                     post_encoded_img = i.split('/')
                     encoded_img = [np.float64(j) for j in post_encoded_img if j != '']
                     encoded_img = np.array(encoded_img).reshape(1,-1)
-                    list_embedded_imgs_validation_decoded.append(encoded_img)
+                    list_embedded_imgs_validation_decoded.append(encoded_img)   # [(1, 128), (1, 128), ...]
             ##############################################################################
             # patient do not use second authority                                        #
             ##############################################################################
@@ -201,14 +222,14 @@ class IdentifyUser:
                     ret, name, birthday, phone, address = para.db.Get_Patient_Information(patient_ID)
                     if ret == -1:
                         LogMesssage("[Identifying_User]: Cannot get patient's information", opt=2)
-                        res_msg = {'return': -1}
+                        return {'return': -1}
                     else:
                         LogMesssage("[Identifying_User]: Successfully get patient's information")
-                        res_msg = {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                        return {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
 
                 else:
                     LogMesssage("[Identifying_User]: Fail to classifying patient's information", opt=2)
-                    res_msg = {'return': -1}
+                    return {'return': -1}
             
             ##############################################################################
             # patient use second authority                                               #
@@ -231,24 +252,13 @@ class IdentifyUser:
                 ##########################################################################
                 if self.CheckExistPatient(patient_ID) != 0:
                     LogMesssage("[Identifying_User]: Patient is not active. Load patient image from database and active")
-
-                    ret, list_embedded_imgs_stored_db = para.db.Get_Patient_Img(patient_ID)
-                    if ret != 0:
-                        LogMesssage("[Identifying_User]: Fail to get patient's embedded with patient's SSN", opt=2)
+                    
+                    # Load images and decode from db
+                    ret, list_embedded_imgs_stored_db_decoded = self.__getImagePatientsOnDB(patient_ID)
+                    if ret == -1:
                         return {'return': -3}
-                    else:
-                        LogMesssage("[Identifying_User]: Successfully get patient's embedded with patient's SSN")
 
-                    ######################################################################
-                    # decoding images stored on db                                       #
-                    ######################################################################
-                    list_embedded_imgs_stored_db_decoded = []
-                    for i in list_embedded_imgs_stored_db:
-                        image = i.split('/')
-                        encoded_img = [np.float64(j) for j in image if j != '']
-                        encoded_img = np.array(encoded_img)
-                        list_embedded_imgs_stored_db_decoded.append(encoded_img)
-
+                    # Start to train KNN model
                     para.lock_train_patient.acquire()
                     ret_add_new_patient = self.Add_New_Patient(patient_ID, list_embedded_imgs_stored_db_decoded)
                     para.lock_train_patient.release()
@@ -261,16 +271,16 @@ class IdentifyUser:
                     LogMesssage("[Identifying_User]: Patient is active")
 
                 ##########################################################################
-                # Check whether this user is active or not. if not active                #
+                # Check whether patient is match with local data or not                  #
                 ##########################################################################
                 list_distance = []
                 list_embedded_imgs_stored_local_decoded = np.array([self.__list_embedded_face[i] for i in range(len(self.__list_patient_ID)) if self.__list_patient_ID[i] == patient_ID])
-                print(list_embedded_imgs_stored_local_decoded.shape)
+                # print(list_embedded_imgs_stored_local_decoded.shape)
                 
                 for i in range(len(list_embedded_imgs_validation_decoded)):
                     list_dup_img = np.array(5*[list_embedded_imgs_validation_decoded[i][0]])
                     ret = np.linalg.norm(list_embedded_imgs_stored_local_decoded - list_dup_img, axis=1)
-                    print(ret)
+                    # print(ret)
                     current_min_distance = np.amin(ret)
                     if current_min_distance< min_distance:
                         min_distance = current_min_distance
@@ -280,8 +290,8 @@ class IdentifyUser:
                 
                 LogMesssage("[Identifying_User]: Index of image: {} with min distance: {} will replace".format(index_replace_img, min_distance))
                 # print(replace_img)
-                print(replace_img.shape)
-                print(self.__list_embedded_face[0].shape)
+                # print(replace_img.shape)
+                # print(self.__list_embedded_face[0].shape)
                 list_distance = np.array(list_distance)
                 list_distance = np.reshape(list_distance, (1, -1))
                 mean_distance = np.mean(list_distance)
@@ -289,10 +299,17 @@ class IdentifyUser:
 
                 patient_ID = int(patient_ID)
                 if mean_distance <= THRESHOLD_VERIFY_FACE:
-                    ret, name, birthday, phone, address = para.db.Get_Patient_Information(patient_ID)
-                    res_msg = {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                    LogMesssage("[Identifying_User]: Successfully verify patient with SSN")
 
-            return res_msg
+                    # Update replace image
+
+                    LogMesssage("[Identifying_User]: Successfully update newer image of patient")
+                    ret, name, birthday, phone, address = para.db.Get_Patient_Information(patient_ID)
+                    return {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                else:
+                    LogMesssage("[Identifying_User]: Cannot verify patient with SSN", opt=2)
+
+            return {'return': -1}
 
         except Exception as e:
             LogMesssage('\t[Identifying_User]: Has error at module Identifying_User in identifying_user.py: {error}'.format(error=e), opt=2)

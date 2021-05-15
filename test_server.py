@@ -67,9 +67,7 @@ class Server:
     
     def Validate_User(self, list_encoded_img, ssn):
         try:
-            event_data_batch = self.__producer.create_batch(
-                partition_id='0'
-            )
+            event_data_batch = self.__producer.create_batch(partition_id='0')
             try:
                 data = EventData(list_encoded_img)
                 # data = EventData("Hello")
