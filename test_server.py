@@ -1,3 +1,4 @@
+import json
 from azure.eventhub import EventData, EventHubProducerClient
 from azure.iot.device import IoTHubDeviceClient, Message, MethodResponse
 
@@ -37,34 +38,63 @@ class Server:
 
     def __Listen_Reponse_Server(self, connection):
         while True:
-            method_request = connection.receive_method_request()
-            print (
-                "\nMethod callback called with:\nmethodName = {method_name}\npayload = {payload}".format(
-                    method_name=method_request.name,
-                    payload=method_request.payload
-                )
-            )
-            if method_request.name == "Validate_User" or method_request.name == "Create_Patient" \
-                or method_request.name == "Create_New_Device" \
-                or method_request.name == 'Get_Examination_Room' \
-                or method_request.name == 'Submit_Examination' \
-                or method_request.name == 'Create_Temp_Patient' \
-                or method_request.name == 'Get_Sympton' \
-                or method_request.name == 'Update_List_Exam_Rooms':
-                response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
-                response_status = 200
-            else:
-                response_payload = {"Response": "Direct method {} not defined".format(method_request.name)}
-                response_status = 404
+            message = self.__connection.receive_message()
+            for property in vars(message).items():
+                if property[0] == "custom_properties":
+                    value = json.loads(property[1]['response_msg'])
+                    print(value)
+                    break
+ 
+            # method_request = connection.receive_method_request()
+            # print (
+            #     "\nMethod callback called with:\nmethodName = {method_name}\npayload = {payload}".format(
+            #         method_name=method_request.name,
+            #         payload=method_request.payload
+            #     )
+            # )
+            # if method_request.name == "Validate_User" or method_request.name == "Create_Patient" \
+            #     or method_request.name == "Create_New_Device" \
+            #     or method_request.name == 'Get_Examination_Room' \
+            #     or method_request.name == 'Submit_Examination' \
+            #     or method_request.name == 'Create_Temp_Patient' \
+            #     or method_request.name == 'Get_Sympton' \
+            #     or method_request.name == 'Update_List_Exam_Rooms':
+            #     response_payload = {"Response": "Executed direct method {}".format(method_request.name)}
+            #     response_status = 200
+            # else:
+            #     response_payload = {"Response": "Direct method {} not defined".format(method_request.name)}
+            #     response_status = 404
 
-            method_response = MethodResponse(method_request.request_id, response_status, payload=response_payload)
-            connection.send_method_response(method_response)
+            # method_response = MethodResponse(method_request.request_id, response_status, payload=response_payload)
+            # connection.send_method_response(method_response)
 
-            # ret = method_request.payload['stt']
-            # # for room in exam_room:
-            # print(ret)
+            # # ret = method_request.payload['stt']
+            # # # for room in exam_room:
+            # # print(ret)
             self.has_response = True
     
+    def getInitParameters(self):
+        try:
+            event_data_batch = self.__producer.create_batch(partition_id='0')
+
+            try:
+                data = EventData('')
+                data.properties = {
+                    'request_id': "123",
+                    'type_request': "8", 
+                    'device_ID': str(self.__device_ID)
+                }
+                event_data_batch.add(data)
+            
+            except Exception as e:
+                print(e)
+
+
+            self.__producer.send_batch(event_data_batch)
+
+        except Exception as e:
+            print(e)
+
     def Validate_User(self, list_encoded_img, ssn):
         try:
             event_data_batch = self.__producer.create_batch(partition_id='0')
@@ -196,7 +226,7 @@ class Server:
     
     def sendUpdateListExamRooms(self, hospital_ID):
         try:
-            event_data_batch = self.__producer.create_batch()
+            event_data_batch = self.__producer.create_batch(partition_id = '0')
             try:
                 msg = {
                     'type_request':"9", 

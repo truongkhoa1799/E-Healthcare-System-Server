@@ -30,7 +30,10 @@ def Submit_Examination(properties, list_embedded_face):
             # simulate error when insert temp patient
             # ret = -1
             if ret == -1:
-                return {'return': -1, 'msg': 'Fail to submit examination'}
+                return {
+                    'return': "-1", 
+                    'msg': 'Fail to submit examination'
+                }
             
             LogMesssage('\tNew patient with ID {} has sumbitted examination'.format(patient_ID))
             flag_insert_user_information = True
@@ -73,7 +76,10 @@ def Submit_Examination(properties, list_embedded_face):
                 patient_ID, sensor_id, message)
         
         LogMesssage('\tInsert successfully examination with ID {exam_id} at room {room_id}'.format(exam_id=stt, room_id="{}-{}-{}".format(hospital_ID, building_code, room_code)))
-        return {'return': 0, 'stt': stt}
+        return {
+            'return': "0",
+            'stt': stt
+        }
 
     except Exception as error:
         message = "Has error at module Submit_Examination in file submit_examination: {}".format(error)
@@ -94,4 +100,7 @@ def Error_Functions_Submit_Examination(
         para.db.Delete_Patient(patient_ID)
         LogMesssage("\tDelete temp patient with ID {id}".format(id=patient_ID), opt=2)
 
-    return {'return': -1, 'msg': message}
+    return {
+        'return': "-1", 
+        'msg': message
+    }

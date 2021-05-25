@@ -216,20 +216,32 @@ class IdentifyUser:
                 # wearing mask
                 if patient_ID == -2:
                     LogMesssage("[Identifying_User]: Detected patient was wearing mask", opt=2)
-                    return {'return': -2}
+                    return {
+                        'return': "-2"
+                    }
 
                 elif patient_ID != -1:
                     ret, name, birthday, phone, address = para.db.Get_Patient_Information(patient_ID)
                     if ret == -1:
                         LogMesssage("[Identifying_User]: Cannot get patient's information", opt=2)
-                        return {'return': -1}
+                        return {
+                            'return': "-1"
+                        }
+
                     else:
                         LogMesssage("[Identifying_User]: Successfully get patient's information")
-                        return {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                        return {
+                            'return': "0",
+                            'patient_ID': str(patient_ID), 
+                            'name': str(name), 
+                            'birthday': str(birthday), 
+                            'phone': str(phone), 
+                            'address': str(address)
+                        }
 
                 else:
                     LogMesssage("[Identifying_User]: Fail to classifying patient's information", opt=2)
-                    return {'return': -1}
+                    return {'return': "-1"}
             
             ##############################################################################
             # patient use second authority                                               #
@@ -243,7 +255,10 @@ class IdentifyUser:
                 ret, patient_ID = para.db.getPatientIDWithSSN(ssn)
                 if ret == -1:
                     LogMesssage("[Identifying_User]: Fail to get patient id with patient's SSN", opt=2)
-                    return {'return': -3}
+                    return {
+                        'return': "-3"
+                    }
+
                 else:
                     LogMesssage("[Identifying_User]: Success get patient id with patient's SSN")
 
@@ -256,7 +271,9 @@ class IdentifyUser:
                     # Load images and decode from db
                     ret, list_embedded_imgs_stored_db_decoded = self.__getImagePatientsOnDB(patient_ID)
                     if ret == -1:
-                        return {'return': -3}
+                        return {
+                            'return': "-3"
+                        }
 
                     # Start to train KNN model
                     para.lock_train_patient.acquire()
@@ -264,7 +281,10 @@ class IdentifyUser:
                     para.lock_train_patient.release()
                     if ret_add_new_patient == -1:
                         LogMesssage('\t[Identifying_User]: Fail to activate patient with id: {id}'.format(id=patient_ID), opt=2)
-                        return {'return': -3}
+                        return {
+                            'return': "-3"
+                        }
+
                     else:
                         LogMesssage('\t[Identifying_User]: Successfully activate patient with id: {id}'.format(id=patient_ID))
                 else:
@@ -305,15 +325,27 @@ class IdentifyUser:
 
                     LogMesssage("[Identifying_User]: Successfully update newer image of patient")
                     ret, name, birthday, phone, address = para.db.Get_Patient_Information(patient_ID)
-                    return {'return': 0, 'patient_ID': patient_ID, 'name': name, 'birthday': birthday, 'phone': phone, 'address': address}
+                    return {
+                        'return': "0", 
+                        'patient_ID': str(patient_ID), 
+                        'name': str(name), 
+                        'birthday': str(birthday), 
+                        'phone': str(phone), 
+                        'address': str(address)
+                    }
+
                 else:
                     LogMesssage("[Identifying_User]: Cannot verify patient with SSN", opt=2)
 
-            return {'return': -1}
+            return {
+                'return': "-1"
+            }
 
         except Exception as e:
             LogMesssage('\t[Identifying_User]: Has error at module Identifying_User in identifying_user.py: {error}'.format(error=e), opt=2)
-            return {'return': -1}
+            return {
+                'return': "-1"
+            }
     
     def Add_New_Patient(self, patient_ID, list_embedded_face):
         patient_ID = int(patient_ID)

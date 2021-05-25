@@ -22,20 +22,38 @@ from services.activate_temp_patient import *
 from services.get_init_parameters import *
 from services.extract_sympton.get_sympton import Get_Sympton
 
+from threading import Timer
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
+
+def establishIoTHubReceiveConnection():
+    LogMesssage('[establishIoTHubReceiveConnection]: Re-establish iot hub connection')
+
+    para.lock_reset_connection.acquire()
+    try:
+        para.iothub_registry_manager = IoTHubRegistryManager(IOTHUB_CONNECTION)
+    except:
+        LogMesssage('[establishIoTHubReceiveConnection]: Fail to re-establish iot hub connection')
+    para.lock_reset_connection.release()
+
 ######################################################################################
 # Response_Devices                                                                   #
 ######################################################################################
-def Response_Devices(device_ID, res_msg, method_name):
-    # Call the direct method.
-    # print(device_ID)
-    # print(res_msg)
-    # print(method_name)
-    # time.sleep(2000)
-    deviceMethod = CloudToDeviceMethod(method_name=method_name, payload=res_msg)
-    response = para.iothub_registry_manager.invoke_device_method(device_ID, deviceMethod)
+def Response_Devices(device_ID, res_msg):
+    print(res_msg)
+    props={}
+    response_msg = json.dumps(res_msg)
+    props["response_msg"] = response_msg
 
-    LogMesssage('Response status          : {status}'.format(status=response.status))
-    LogMesssage('Response payload         : {payload}'.format(payload=response.payload))
+    para.lock_reset_connection.acquire()
+    try:
+        para.iothub_registry_manager.send_c2d_message(device_ID, "123", properties=props)
+    except:
+        pass
+    para.lock_reset_connection.release()
+
 
 ######################################################################################
 # Receive_Message_From_Devices                                                       #
@@ -61,10 +79,10 @@ async def on_event(partition_context, event):
         type_request = str(string_properties['type_request'])
         request_id = str(string_properties['request_id'])
 
-
+        res_msg = {}
         LogMesssage('Request {res_id}, {res_name}, device: {device_id}'.format(res_id=request_id, res_name=para.request_msg[type_request], device_id=device_ID))
 
-        if type_request == '0':
+        if type_request == para.SERVER_REQUEST_VALIDATION:
             embedded_face = event.body_as_str(encoding='UTF-8')
             ssn = str(string_properties['ssn'])
             res_msg = para.identifying_user.Identifying_User(embedded_face, ssn)
@@ -73,34 +91,36 @@ async def on_event(partition_context, event):
         #     data = event.body_as_str(encoding='UTF-8')
         #     res_msg = Create_New_Patient(string_properties, data)
 
-        elif type_request == '3':
-            res_msg = Create_New_Device(string_properties)
+        # elif type_request == '3':
+        #     res_msg = Create_New_Device(string_properties)
 
         # elif type_request == '4':
         #     res_msg = Get_Examination_Room(device_ID)
             
-        elif type_request == '5':
+        elif type_request == para.SERVER_REQUEST_SUBMIT_EXAMINATION:
             data = event.body_as_str(encoding='UTF-8')
             res_msg = Submit_Examination(string_properties, data)
         
-        elif type_request == "6":
+        elif type_request == para.SERVER_REQUEST_ACTIVE_PATIENT:
             res_msg = Activate_Temp_Patient(string_properties)
             return
         
-        elif type_request == '7':
+        elif type_request == para.SERVER_REQUEST_GET_SYMPTOMS:
             user_voice = event.body_as_str(encoding='UTF-8')
             res_msg = Get_Sympton(user_voice)
 
-        elif type_request == '8':
+        elif type_request == para.SERVER_REQUEST_GET_INIT_PARA:
+            # return message: {'return': , 'parameters': }
             res_msg = getInitParameters(device_ID)
         
-        elif type_request == '9':
+        elif type_request == para.SERVER_REQUEST_UPDATE_EXAM_ROOM:
             hospital_ID = int(string_properties['hospital_ID'])
-            res_msg = sendListExamRoomsToDevices(hospital_ID, para.request_msg[type_request])
+            res_msg = sendListExamRoomsToDevices(hospital_ID)
 
-        # attach the request id and send back to client
+        # attach the request id, and type request and send back to client
         res_msg['request_id'] = request_id
-        Response_Devices(device_ID, res_msg, para.request_msg[type_request])
+        res_msg['type_request'] = type_request
+        Response_Devices(device_ID, res_msg)
         print()
     except Exception as ex:
         LogMesssage('Unexpected error {error} while receiving message'.format(error=ex), opt=2)
@@ -110,8 +130,8 @@ async def on_event(partition_context, event):
         # elif type_request == "2":
         #     msg = "Has error when create new patient"
 
-        elif type_request == "3":
-            msg = "Has error when create new device"
+        # elif type_request == "3":
+        #     msg = "Has error when create new device"
 
         # elif type_request == "4":
         #     msg = "Has error when get examination room"
@@ -131,8 +151,13 @@ async def on_event(partition_context, event):
         elif type_request == "9":
             msg = "Has error when updating list exam rooms to devices"
 
-        res_msg = {'return': -1, 'msg': msg, 'request_id': request_id}
-        Response_Devices(device_ID, res_msg, para.request_msg[type_request])
+        res_msg = {
+            'request_id': request_id,
+            'type_request': type_request,
+            'return': -1,
+            'msg': msg
+        }
+        Response_Devices(device_ID, res_msg)
         print()
 
 async def Receive_Message_From_Devices():
@@ -190,6 +215,10 @@ def Init_Server():
 if __name__ == '__main__':
     # Remove_Device(1)
     try:
+        para.timer_reset=RepeatTimer(200, establishIoTHubReceiveConnection)
+        para.timer_reset.daemon = True
+        para.timer_reset.start()
+
         Init_Server()
         # Run the main method.
         loop = asyncio.get_event_loop()

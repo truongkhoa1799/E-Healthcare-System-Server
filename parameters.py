@@ -68,6 +68,8 @@ class Parameters:
     def __init__(self):
         # DB
         self.db = None
+        self.timer_reset = None
+        self.lock_reset_connection = Lock()
         
         # Identifying user
         self.identifying_user = None
@@ -94,6 +96,13 @@ class Parameters:
             "8": "Get_Init_Parameters",
             "9": "Update_List_Exam_Rooms"
         }
+
+        self.SERVER_REQUEST_VALIDATION = "0"
+        self.SERVER_REQUEST_SUBMIT_EXAMINATION = "5"
+        self.SERVER_REQUEST_ACTIVE_PATIENT = "6"
+        self.SERVER_REQUEST_GET_SYMPTOMS = "7"
+        self.SERVER_REQUEST_GET_INIT_PARA = "8"
+        self.SERVER_REQUEST_UPDATE_EXAM_ROOM = "9"
 
 
 para = Parameters()

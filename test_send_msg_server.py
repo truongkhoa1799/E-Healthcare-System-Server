@@ -202,6 +202,11 @@ def testValidateWithSSN(list_embedded_imgs, ssn):
         ret = np.linalg.norm(list_embedded_imgs_decoded-img, axis=1)
         list_wrong_distance.append(ret)
 
+def get_init():
+    server.getInitParameters()
+    while (server.has_response == False):
+        continue
+
 if __name__ == '__main__':
     server.has_response = False
     # server.Close()
@@ -328,6 +333,7 @@ if __name__ == '__main__':
     # test_create_new_patient(8, kiet)
     # test_validate(1, "025874415")
     test_validate(1)
+    # get_init()
     
     # for i in range(9):
     #     try:

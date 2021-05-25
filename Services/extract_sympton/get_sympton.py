@@ -28,16 +28,26 @@ def Get_Sympton(user_voice):
         if 'intent' in response:
             ret_data['intent'] = response['intent']['name']
         else:
-            return {'return': -1, 'symptons': ''}
+            return {
+                'return': "-1",
+                'symptons': ''
+            }
 
         if ret_data['intent'] == 'want_exam':
             if 'entities' in response:
                 for i in response['entities']:
                     if i['extractor'] == 'CRFEntityExtractor' and i['entity'] == 'deparment_name':
                         ret_data['deparment_name'] = i['value']
-                        return {'return': 0, 'symptons': ret_data}
+                        return {
+                            'return': "0", 
+                            'symptons': ret_data
+                        }
+
             else:
-                return {'return': -1, 'symptons': ''}
+                return {
+                    'return': "-1", 
+                    'symptons': ''
+                }
 
         elif ret_data['intent'] == 'display_symptom':
             if 'entities' in response:
@@ -51,16 +61,25 @@ def Get_Sympton(user_voice):
                             w = Word(i['value'], i['start'], i['end'], 'problem')
                             list_problems.append(w)
             else:
-                return {'return': -1, 'symptons': ''}
+                return {
+                    'return': "-1", 
+                    'symptons': ''
+                }
 
         if len(list_problems) == 0:
-            return {'return': 0, 'symptons': ret_data}
+            return {
+                'return': "0", 
+                'symptons': ret_data
+            }
+
         else:
             if len(list_part_of_bodies) == 0:
                 case = 0
+
             else:
                 if list_part_of_bodies[0].start > list_problems[0].start:
                     case = 0
+
                 else:
                     case = 1
 
@@ -68,17 +87,24 @@ def Get_Sympton(user_voice):
 
         if case == 0:
             ret_data['list_problem'], ret_data['list_part_of_body'] = Case_0(new_sentence)
+
         else:
             ret_data['list_problem'], ret_data['list_part_of_body'] = Case_1(new_sentence)
             
         # print(ret_data['list_problem'])
         # print(ret_data['list_part_of_body'])
-        return {'return': 0, 'symptons': ret_data}
+        return {
+            'return': "0", 
+            'symptons': ret_data}
+        
 
     except Exception as e:
         # Set default value when this program is crash
         LogMesssage('Has error at Get_Sympton in get_sympton: {e}'.format(e=e))
-        return {'return': -1, 'symptons': ''}
+        return {
+            'return': "-1", 
+            'symptons': ''
+        }
 
 def Create_New_Sentence(list_problems, list_part_of_bodies):
     new_sentence = list()
